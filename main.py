@@ -1,76 +1,119 @@
-from data_processor import DataProcessor
-from model_trainer import ModelTrainer
-from visualizer import Visualizer
 import logging
-import sys
+import os
+from data_processor import DataProcessor
+from model_trainer import ModelTrainer, LLMClassifier
+from visualizer import Visualizer
+from config import EMB_MODELS, TEST_SIZE, RANDOM_STATE
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
-logger = logging.getLogger(__name__)
 
 def main():
     """Main execution function for sentiment analysis pipeline."""
-    try:
-        # Initialize components
-        data_processor = DataProcessor()
-        model_trainer = ModelTrainer()
-        visualizer = Visualizer()
+    # Initialize components
+    processor = DataProcessor()
+    trainer = ModelTrainer()
+    viz = Visualizer()
+    
+    # Load and process data
+    df = processor.load()
+    processor.prep_labels()
+    
+    # Generate visualizations
+    viz.plot_len_dist(df)
+    viz.plot_cls_dist(df)
+    viz.plot_len_by_cls(df)
+    viz.plot_wc(" ".join(df['text']))
+    
+    # Train and evaluate traditional models
+    results = {}
+    learning_curves = {}
+    
+    for emb_name, emb_model in EMB_MODELS.items():
+        logging.info(f"Processing embeddings with {emb_name}")
+        processor.model = emb_model
+        X_train, X_test, y_train, y_test = processor.split()
         
-        # Load and process data
-        logger.info("Loading data...")
-        df = data_processor.load_data()
-        texts = df['statement'].tolist()
-        y = data_processor.prepare_labels(df)
-        X = data_processor.get_embeddings(texts)
-        X_train, X_test, y_train, y_test = data_processor.split_data(X, y)
-        
-        # Add text length feature
-        df = data_processor.add_text_length(df)
-        
-        # Data visualization
-        logger.info("Generating visualizations...")
-        visualizer.plot_text_length_distribution(df)
-        visualizer.plot_class_distribution(df)
-        visualizer.plot_text_length_by_class(df)
-        visualizer.plot_wordcloud(texts)
-        
-        # Train and evaluate models
-        models = ['logistic', 'mlp', 'random_forest']
-        for model_name in models:
-            logger.info(f"Training {model_name} model...")
-            model = model_trainer.train_model(model_name, X_train, y_train)
-            metrics, report, cm, _ = model_trainer.evaluate_model(
-                model, X_test, y_test, data_processor.label_dict
+        for model_name in ['lr', 'rf', 'mlp', 'svm']:
+            logging.info(f"Training {model_name} with {emb_name} embeddings")
+            
+            # Train model and get learning curve
+            train_sizes, train_scores, test_scores = trainer.train(
+                model_name, X_train, y_train
+            )
+            learning_curves[f"{emb_name}_{model_name}"] = (
+                train_sizes, train_scores, test_scores
             )
             
-            # Output evaluation results
-            logger.info(f"\n{model_name} model evaluation results:")
-            logger.info(f"Accuracy: {metrics['accuracy']:.4f}")
-            logger.info(f"Precision: {metrics['precision']:.4f}")
-            logger.info(f"Recall: {metrics['recall']:.4f}")
-            logger.info(f"F1 Score: {metrics['f1']:.4f}")
-            if 'auc' in metrics:
-                logger.info(f"ROC AUC: {metrics['auc']:.4f}")
-            
-            logger.info("\nClassification Report:")
-            logger.info(report)
+            # Evaluate model
+            metrics = trainer.eval(
+                trainer.best_models[model_name],
+                X_test, y_test,
+                processor.labels
+            )
+            results[f"{emb_name}_{model_name}"] = metrics
             
             # Plot confusion matrix
-            visualizer.plot_confusion_matrix(
-                cm, 
-                data_processor.label_dict,
-                f'{model_name} Confusion Matrix'
+            viz.plot_cm(
+                y_test,
+                metrics['y_pred'],
+                processor.labels,
+                f"Confusion Matrix - {emb_name} {model_name}"
             )
             
-    except Exception as e:
-        logger.error(f"Execution error: {str(e)}")
-        raise
+            # Plot ROC curves
+            for label in processor.labels:
+                viz.plot_roc_curve(
+                    metrics['fpr'][label],
+                    metrics['tpr'][label],
+                    metrics['roc_auc'][label],
+                    f"ROC Curve - {emb_name} {model_name} {label}"
+                )
+    
+    # Plot learning curves
+    for name, (train_sizes, train_scores, test_scores) in learning_curves.items():
+        viz.plot_learning_curve(
+            train_sizes, train_scores, test_scores,
+            f"Learning Curve - {name}"
+        )
+    
+    # Plot performance comparison
+    viz.plot_metrics(results)
+    
+    # Evaluate LLM baseline
+    if 'OPENAI_API_KEY' in os.environ:
+        logging.info("Evaluating LLM baseline")
+        llm = LLMClassifier(os.environ['OPENAI_API_KEY'])
+        
+        # Test different prompts
+        for prompt_type in ['basic', 'detailed', 'few_shot']:
+            logging.info(f"Testing LLM with {prompt_type} prompt")
+            predictions = llm.predict(
+                X_test,
+                processor.labels,
+                prompt_type=prompt_type
+            )
+            
+            # Calculate metrics
+            metrics = trainer.eval(
+                predictions,
+                X_test,
+                y_test,
+                processor.labels
+            )
+            results[f"llm_{prompt_type}"] = metrics
+            
+            # Plot confusion matrix
+            viz.plot_cm(
+                y_test,
+                metrics['y_pred'],
+                processor.labels,
+                f"Confusion Matrix - LLM {prompt_type}"
+            )
+    else:
+        logging.warning("Skipping LLM baseline evaluation - No API key found")
 
 if __name__ == "__main__":
     main() 

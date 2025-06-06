@@ -1,16 +1,18 @@
 import pandas as pd
+import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
-from config import DATA_PATH, EMBEDDING_MODEL, TEST_SIZE, RANDOM_STATE
+from config import DATA_PATH, EMB_MODELS, TEST_SIZE, RANDOM_STATE
 
 class DataProcessor:
     def __init__(self):
-        self.model = SentenceTransformer(EMBEDDING_MODEL)
-        self.labels = None
-        self.idx2label = None
-        
+        """Initialize data processor."""
+        self.model = SentenceTransformer(EMB_MODELS['minilm'])
+        self.labels = {}
+        self.idx2label = {}
+    
     def load(self):
-        """Load and clean the dataset."""
+        """Load and clean data from CSV file."""
         try:
             df = pd.read_csv(DATA_PATH)
             df = df.dropna(subset=['statement', 'status'])
@@ -22,24 +24,38 @@ class DataProcessor:
             raise Exception(f"Failed to load data: {str(e)}")
     
     def prep_labels(self, df):
-        """Convert text labels to numeric indices."""
-        uniq_labels = df['status'].unique()
-        self.labels = {label: i for i, label in enumerate(uniq_labels)}
-        self.idx2label = {i: label for label, i in self.labels.items()}
-        return df['status'].map(self.labels).values
+        """Prepare labels for classification."""
+        try:
+            unique_labels = df['status'].unique()
+            self.labels = {label: idx for idx, label in enumerate(unique_labels)}
+            self.idx2label = {idx: label for label, idx in self.labels.items()}
+            return df['status'].map(self.labels)
+        except Exception as e:
+            raise Exception(f"Failed to prepare labels: {str(e)}")
     
     def get_emb(self, texts):
-        """Generate embeddings for input texts."""
+        """Get embeddings for texts."""
         try:
             return self.model.encode(texts)
         except Exception as e:
             raise Exception(f"Failed to generate embeddings: {str(e)}")
     
     def split(self, X, y):
-        """Split data into training and testing sets."""
-        return train_test_split(X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE)
+        """Split data into train and test sets."""
+        try:
+            return train_test_split(
+                X, y,
+                test_size=TEST_SIZE,
+                random_state=RANDOM_STATE,
+                stratify=y
+            )
+        except Exception as e:
+            raise Exception(f"Failed to split data: {str(e)}")
     
     def add_len(self, df):
-        """Add text length as a feature."""
-        df['len'] = df['statement'].str.split().str.len()
-        return df 
+        """Add text length feature."""
+        try:
+            df['len'] = df['statement'].str.len()
+            return df
+        except Exception as e:
+            raise Exception(f"Failed to add length feature: {str(e)}") 
