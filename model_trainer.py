@@ -26,8 +26,7 @@ class ModelTrainer:
         self.models = {
             'lr': LogisticRegression(random_state=RANDOM_STATE),
             'rf': RandomForestClassifier(random_state=RANDOM_STATE),
-            'mlp': MLPClassifier(random_state=RANDOM_STATE),
-            'svm': SVC(random_state=RANDOM_STATE, probability=True)
+            'mlp': MLPClassifier(random_state=RANDOM_STATE)
         }
 
     def train(self, algo, X_train, y_train):

@@ -54,7 +54,7 @@ def evaluate_embedding_models(processor, trainer, viz, X_train, X_test, y_train,
     os.makedirs(os.path.join(viz.save_dir, model_plot_dir), exist_ok=True)
     
     # Train and evaluate models
-    for algo in ['lr', 'rf', 'mlp', 'svm']:
+    for algo in ['lr', 'rf', 'mlp']:
         # Create algorithm-specific plot directories
         algo_plot_dir = os.path.join(model_plot_dir, algo)
         os.makedirs(os.path.join(viz.save_dir, algo_plot_dir), exist_ok=True)

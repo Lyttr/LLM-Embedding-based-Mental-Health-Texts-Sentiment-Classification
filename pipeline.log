@@ -814,3 +814,88 @@ Personality disorder       0.72      0.57      0.64       215
 2025-06-06 21:37:50,851 - INFO - Weighted F1 Score: 0.7727
 2025-06-06 21:37:50,853 - INFO - Saved model mlp
 2025-06-06 21:37:51,130 - INFO - Training new model: svm
+2025-06-06 21:49:39,286 - INFO - === Sentiment Analysis Pipeline Start ===
+2025-06-06 21:49:39,287 - INFO - Directory created or exists: plots
+2025-06-06 21:49:39,287 - INFO - Directory created or exists: models
+2025-06-06 21:49:39,287 - INFO - Directory created or exists: results
+2025-06-06 21:49:39,287 - INFO - 
+Processing with all-MiniLM-L6-v2 model...
+2025-06-06 21:49:39,299 - INFO - Use pytorch device_name: mps
+2025-06-06 21:49:39,299 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-06-06 21:49:41,310 - INFO - Processing data...
+2025-06-06 21:49:41,527 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-06 21:49:41,541 - INFO - Mental health status distribution in dataset:
+2025-06-06 21:49:41,541 - INFO - Normal: 16343 samples
+2025-06-06 21:49:41,541 - INFO - Depression: 15404 samples
+2025-06-06 21:49:41,541 - INFO - Suicidal: 10652 samples
+2025-06-06 21:49:41,541 - INFO - Anxiety: 3841 samples
+2025-06-06 21:49:41,541 - INFO - Bipolar: 2777 samples
+2025-06-06 21:49:41,541 - INFO - Stress: 2587 samples
+2025-06-06 21:49:41,541 - INFO - Personality disorder: 1077 samples
+2025-06-06 21:49:41,541 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-06 21:49:41,543 - INFO - Loading existing embeddings from models/embeddings_all-MiniLM-L6-v2.npy
+2025-06-06 21:49:47,986 - INFO - Training ML models...
+2025-06-06 21:49:47,986 - INFO - Loading existing model lr
+2025-06-06 21:49:48,004 - INFO - 
+Classification Report:
+2025-06-06 21:49:48,008 - INFO -                       precision    recall  f1-score   support
+
+             Anxiety       0.81      0.77      0.79       768
+             Bipolar       0.81      0.76      0.78       556
+          Depression       0.70      0.75      0.72      3081
+              Normal       0.89      0.93      0.91      3269
+Personality disorder       0.71      0.53      0.61       215
+              Stress       0.63      0.56      0.59       517
+            Suicidal       0.68      0.62      0.65      2131
+
+            accuracy                           0.77     10537
+           macro avg       0.75      0.70      0.72     10537
+        weighted avg       0.77      0.77      0.77     10537
+
+2025-06-06 21:49:48,008 - INFO - Accuracy: 0.7676
+2025-06-06 21:49:48,008 - INFO - Weighted Precision: 0.7651
+2025-06-06 21:49:48,008 - INFO - Weighted Recall: 0.7676
+2025-06-06 21:49:48,008 - INFO - Weighted F1 Score: 0.7652
+2025-06-06 21:49:48,154 - INFO - Loading existing model rf
+2025-06-06 21:49:48,186 - INFO - 
+Classification Report:
+2025-06-06 21:49:48,190 - INFO -                       precision    recall  f1-score   support
+
+             Anxiety       0.82      0.50      0.62       768
+             Bipolar       0.96      0.28      0.43       556
+          Depression       0.54      0.80      0.64      3081
+              Normal       0.77      0.96      0.86      3269
+Personality disorder       1.00      0.01      0.02       215
+              Stress       1.00      0.03      0.07       517
+            Suicidal       0.70      0.39      0.50      2131
+
+            accuracy                           0.67     10537
+           macro avg       0.83      0.43      0.45     10537
+        weighted avg       0.72      0.67      0.63     10537
+
+2025-06-06 21:49:48,190 - INFO - Accuracy: 0.6657
+2025-06-06 21:49:48,190 - INFO - Weighted Precision: 0.7172
+2025-06-06 21:49:48,190 - INFO - Weighted Recall: 0.6657
+2025-06-06 21:49:48,190 - INFO - Weighted F1 Score: 0.6270
+2025-06-06 21:49:48,334 - INFO - Loading existing model mlp
+2025-06-06 21:49:48,346 - INFO - 
+Classification Report:
+2025-06-06 21:49:48,349 - INFO -                       precision    recall  f1-score   support
+
+             Anxiety       0.82      0.77      0.79       768
+             Bipolar       0.83      0.75      0.79       556
+          Depression       0.71      0.74      0.73      3081
+              Normal       0.91      0.94      0.92      3269
+Personality disorder       0.72      0.57      0.64       215
+              Stress       0.60      0.60      0.60       517
+            Suicidal       0.67      0.65      0.66      2131
+
+            accuracy                           0.77     10537
+           macro avg       0.75      0.72      0.73     10537
+        weighted avg       0.77      0.77      0.77     10537
+
+2025-06-06 21:49:48,349 - INFO - Accuracy: 0.7738
+2025-06-06 21:49:48,349 - INFO - Weighted Precision: 0.7726
+2025-06-06 21:49:48,349 - INFO - Weighted Recall: 0.7738
+2025-06-06 21:49:48,349 - INFO - Weighted F1 Score: 0.7727
+2025-06-06 21:49:48,493 - INFO - Training new model: svm

@@ -20,11 +20,7 @@ class DataProcessor:
         self.model_name = model_name
         self.model_config = EMB_MODELS[model_name]
         self.model = SentenceTransformer(self.model_config['model_name'])
-        self.label_map = {
-            'positive': 0,
-            'negative': 1,
-            'neutral': 2
-        }
+        self.label_map = None  # Will be created from actual data
         self.max_length = self.model_config.get('max_length', 128)
         self.scaler = StandardScaler()
     

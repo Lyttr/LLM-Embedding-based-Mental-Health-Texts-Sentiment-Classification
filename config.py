@@ -42,14 +42,6 @@ MODEL_PARAMS = {
         'early_stopping': [True],
         'solver': ['adam'],
         'learning_rate_init': [0.001]
-    },
-    'svm': {
-        'C': [1.0],
-        'kernel': ['linear'],
-        'probability': [True],
-        'max_iter': [1000],
-        'cache_size': [1000],
-        'tol': [0.1]
     }
 }
 
