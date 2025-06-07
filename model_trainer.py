@@ -29,8 +29,8 @@ class ModelTrainer:
         self.best_models = {}
         self.models = {
             'lr': GridSearchCV(
-                LogisticRegression(max_iter=1000, n_jobs=1),
-                param_grid={'C': [0.1, 1, 10]},
+                LogisticRegression(max_iter=500, n_jobs=1),
+                param_grid={'C': [1.0]},
                 cv=5,
                 n_jobs=1
             ),
@@ -50,7 +50,7 @@ class ModelTrainer:
             'mlp': GridSearchCV(
                 MLPClassifier(
                     hidden_layer_sizes=(64,),
-                    max_iter=1000,
+                    max_iter=500,
                     early_stopping=True
                 ),
                 param_grid={

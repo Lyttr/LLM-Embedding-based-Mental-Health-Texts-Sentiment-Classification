@@ -41,7 +41,7 @@ class DataVisualizer:
 
     def plot_cls_dist(self, df, status_col='status'):
         plt.figure(figsize=self.fig_size)
-        sns.countplot(data=df, x=status_col, palette=self.colors)
+        sns.countplot(data=df, x=status_col, hue=status_col, palette=self.colors, legend=False)
         plt.title('Class Distribution')
         plt.xlabel('Class')
         plt.ylabel('Count')
@@ -51,7 +51,7 @@ class DataVisualizer:
 
     def plot_len_by_cls(self, df, len_col='text_length', status_col='status'):
         plt.figure(figsize=self.fig_size)
-        sns.boxplot(data=df, x=status_col, y=len_col, palette=self.colors)
+        sns.boxplot(data=df, x=status_col, y=len_col, hue=status_col, palette=self.colors, legend=False)
         plt.title('Text Length by Class')
         plt.xlabel('Class')
         plt.ylabel('Text Length')
