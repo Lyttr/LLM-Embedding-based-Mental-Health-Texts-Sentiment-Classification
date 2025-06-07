@@ -27,28 +27,38 @@ class ModelTrainer:
     def __init__(self, visualizer):
         self.visualizer = visualizer
         self.best_models = {}
-
         self.models = {
-            'lr': LogisticRegression(
-                random_state=RANDOM_STATE,
-                max_iter=1000,
-                C=1.0,
-                n_jobs=-1
+            'lr': GridSearchCV(
+                LogisticRegression(max_iter=1000, n_jobs=1),
+                param_grid={'C': [0.1, 1, 10]},
+                cv=5,
+                n_jobs=1
             ),
-            'rf': RandomForestClassifier(
-                random_state=RANDOM_STATE,
-                n_estimators=100,
-                max_depth=None,
-                min_samples_split=2,
-                n_jobs=-1
+            'rf': GridSearchCV(
+                RandomForestClassifier(
+                    n_estimators=50,
+                    max_depth=10,
+                    n_jobs=1
+                ),
+                param_grid={
+                    'n_estimators': [50],
+                    'max_depth': [10]
+                },
+                cv=5,
+                n_jobs=1
             ),
-            'mlp': MLPClassifier(
-                random_state=RANDOM_STATE,
-                hidden_layer_sizes=(100,),
-                max_iter=1000,
-                early_stopping=True,
-                learning_rate_init=0.001,
-                solver='adam'
+            'mlp': GridSearchCV(
+                MLPClassifier(
+                    hidden_layer_sizes=(64,),
+                    max_iter=1000,
+                    early_stopping=True
+                ),
+                param_grid={
+                    'hidden_layer_sizes': [(64,)],
+                    'alpha': [0.0001]
+                },
+                cv=5,
+                n_jobs=1
             )
         }
 
@@ -83,7 +93,7 @@ class ModelTrainer:
                     if algo == 'rf':
                         self.visualizer.plot_feature_importance(
                             range(X_train.shape[1]),
-                            model.feature_importances_,
+                            model.best_estimator_.feature_importances_,
                             title=f'{algo} Feature Importance',
                             filename=os.path.join(algo_plot_dir, 'feature_importance.png')
                         )
