@@ -1604,3 +1604,87 @@ TypeError: DataProcessor.__init__() missing 1 required positional argument: 'mod
 2025-06-06 23:03:54,272 - INFO - Personality disorder: 1077 samples
 2025-06-06 23:03:54,272 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
 2025-06-06 23:03:54,273 - INFO - Generating embeddings using all-mpnet-base-v2
+2025-06-06 23:26:23,017 - INFO - Saved embeddings to embeddings/embeddings_all-mpnet-base-v2.npy
+2025-06-06 23:26:31,258 - INFO - Saved model lr
+2025-06-06 23:27:02,087 - INFO - Saved model rf
+2025-06-06 23:27:46,630 - INFO - Saved model mlp
+2025-06-06 23:27:51,512 - INFO - Processing and evaluating model: all-distilroberta-v1
+2025-06-06 23:27:51,516 - INFO - Use pytorch device_name: mps
+2025-06-06 23:27:51,517 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-distilroberta-v1
+2025-06-06 23:28:01,578 - WARNING - No sentence-transformers model found with name sentence-transformers/all-distilroberta-v1. Creating a new one with mean pooling.
+2025-06-06 23:28:11,808 - ERROR - Pipeline failed: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like sentence-transformers/all-distilroberta-v1 is not the path to a directory containing a file named config.json.
+Checkout your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
+2025-06-06 23:30:10,658 - INFO - Directory created or exists: plots
+2025-06-06 23:30:10,658 - INFO - Directory created or exists: models
+2025-06-06 23:30:10,659 - INFO - Directory created or exists: results
+2025-06-06 23:30:10,659 - INFO - Processing and evaluating model: all-MiniLM-L6-v2
+2025-06-06 23:30:10,681 - INFO - Use pytorch device_name: mps
+2025-06-06 23:30:10,681 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-06-06 23:30:12,870 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-06 23:30:12,874 - INFO - Mental health status distribution in dataset:
+2025-06-06 23:30:12,874 - INFO - Normal: 16343 samples
+2025-06-06 23:30:12,874 - INFO - Depression: 15404 samples
+2025-06-06 23:30:12,874 - INFO - Suicidal: 10652 samples
+2025-06-06 23:30:12,874 - INFO - Anxiety: 3841 samples
+2025-06-06 23:30:12,874 - INFO - Bipolar: 2777 samples
+2025-06-06 23:30:12,874 - INFO - Stress: 2587 samples
+2025-06-06 23:30:12,874 - INFO - Personality disorder: 1077 samples
+2025-06-06 23:30:12,874 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-06 23:30:12,875 - INFO - Loading existing embeddings from embeddings/embeddings_all-MiniLM-L6-v2.npy
+2025-06-06 23:30:12,957 - INFO - Generating data visualizations...
+2025-06-06 23:30:13,147 - INFO - Saved text length distribution plot
+2025-06-06 23:30:13,232 - INFO - Saved class distribution plot
+2025-06-06 23:30:13,329 - INFO - Saved length by class plot
+2025-06-06 23:30:16,542 - INFO - Saved model lr
+2025-06-06 23:30:31,226 - INFO - Saved model rf
+2025-06-06 23:30:55,818 - INFO - Saved model mlp
+2025-06-06 23:30:58,168 - INFO - Processing and evaluating model: all-mpnet-base-v2
+2025-06-06 23:30:58,170 - INFO - Use pytorch device_name: mps
+2025-06-06 23:30:58,170 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-06-06 23:31:00,239 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-06 23:31:00,241 - INFO - Mental health status distribution in dataset:
+2025-06-06 23:31:00,242 - INFO - Normal: 16343 samples
+2025-06-06 23:31:00,242 - INFO - Depression: 15404 samples
+2025-06-06 23:31:00,242 - INFO - Suicidal: 10652 samples
+2025-06-06 23:31:00,242 - INFO - Anxiety: 3841 samples
+2025-06-06 23:31:00,242 - INFO - Bipolar: 2777 samples
+2025-06-06 23:31:00,242 - INFO - Stress: 2587 samples
+2025-06-06 23:31:00,242 - INFO - Personality disorder: 1077 samples
+2025-06-06 23:31:00,242 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-06 23:31:00,243 - INFO - Loading existing embeddings from embeddings/embeddings_all-mpnet-base-v2.npy
+2025-06-06 23:31:05,365 - INFO - Saved model lr
+2025-06-06 23:31:28,135 - INFO - Saved model rf
+2025-06-06 23:32:06,554 - INFO - Saved model mlp
+2025-06-06 23:32:10,409 - INFO - Processing and evaluating model: all-distilroberta-v1
+2025-06-06 23:32:10,412 - INFO - Use pytorch device_name: mps
+2025-06-06 23:32:10,412 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-distilroberta-v1
+2025-06-06 23:32:23,736 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-06 23:32:23,739 - INFO - Mental health status distribution in dataset:
+2025-06-06 23:32:23,739 - INFO - Normal: 16343 samples
+2025-06-06 23:32:23,739 - INFO - Depression: 15404 samples
+2025-06-06 23:32:23,739 - INFO - Suicidal: 10652 samples
+2025-06-06 23:32:23,739 - INFO - Anxiety: 3841 samples
+2025-06-06 23:32:23,739 - INFO - Bipolar: 2777 samples
+2025-06-06 23:32:23,739 - INFO - Stress: 2587 samples
+2025-06-06 23:32:23,739 - INFO - Personality disorder: 1077 samples
+2025-06-06 23:32:23,739 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-06 23:32:23,741 - INFO - Generating embeddings using all-distilroberta-v1
+2025-06-06 23:47:57,437 - INFO - Saved embeddings to embeddings/embeddings_all-distilroberta-v1.npy
+2025-06-06 23:48:05,417 - INFO - Saved model lr
+2025-06-06 23:48:39,131 - INFO - Saved model rf
+2025-06-06 23:49:24,003 - INFO - Saved model mlp
+2025-06-06 23:49:30,631 - INFO - Processing and evaluating model: all-MiniLM-L12-v2
+2025-06-06 23:49:30,646 - INFO - Use pytorch device_name: mps
+2025-06-06 23:49:30,646 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L12-v2
+2025-06-06 23:49:40,699 - WARNING - No sentence-transformers model found with name sentence-transformers/all-MiniLM-L12-v2. Creating a new one with mean pooling.
+2025-06-06 23:49:47,356 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-06 23:49:47,360 - INFO - Mental health status distribution in dataset:
+2025-06-06 23:49:47,360 - INFO - Normal: 16343 samples
+2025-06-06 23:49:47,360 - INFO - Depression: 15404 samples
+2025-06-06 23:49:47,360 - INFO - Suicidal: 10652 samples
+2025-06-06 23:49:47,360 - INFO - Anxiety: 3841 samples
+2025-06-06 23:49:47,360 - INFO - Bipolar: 2777 samples
+2025-06-06 23:49:47,360 - INFO - Stress: 2587 samples
+2025-06-06 23:49:47,360 - INFO - Personality disorder: 1077 samples
+2025-06-06 23:49:47,360 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-06 23:49:47,363 - INFO - Generating embeddings using all-MiniLM-L12-v2

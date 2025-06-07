@@ -33,27 +33,44 @@ class Visualizer:
         plt.tight_layout()
         self._save_plot(filename)
     
-    def plot_metrics(self, metrics, title='Model Performance Comparison', filename='model_performance_comparison.png'):
-  
+    def plot_metrics(self, metrics_dict, title='Model Performance Comparison', filename='model_performance_comparison.png'):
         try:
+            model_names = list(metrics_dict.keys())
+            algo_names = list(metrics_dict[model_names[0]].keys())
             metrics_names = ['accuracy', 'precision', 'recall', 'f1']
-            values = [metrics[name] for name in metrics_names]
-            plt.figure(figsize=(10, 6))
-            bars = plt.bar(metrics_names, values)
-            for bar in bars:
-                height = bar.get_height()
-                plt.text(bar.get_x() + bar.get_width()/2., height,
-                        f'{height:.3f}',
-                        ha='center', va='bottom')
             
-            plt.title(title)
-            plt.ylabel('Score')
-            plt.ylim(0, 1.1) 
-            plt.grid(True, axis='y', linestyle='--', alpha=0.7)
-            plt.tight_layout()
+            fig, axes = plt.subplots(len(metrics_names), 1, figsize=(10, 4*len(metrics_names)))
+            if len(metrics_names) == 1:
+                axes = [axes]
+
+            for i, metric_name in enumerate(metrics_names):
+                ax = axes[i]
+                data = []
+                labels = []
  
-            plt.savefig(filename)
-            plt.close()
+                for model_name in model_names:
+                    for algo in algo_names:
+                        if metric_name in metrics_dict[model_name][algo]:
+                            data.append(metrics_dict[model_name][algo][metric_name])
+                            labels.append(f"{model_name}-{algo}")
+                
+                if data:
+                    bars = ax.bar(labels, data)
+                    ax.set_title(f'{metric_name.capitalize()} Score')
+                    ax.set_ylabel('Score')
+                    ax.set_ylim(0, 1.1)
+
+                    for bar in bars:
+                        height = bar.get_height()
+                        ax.text(bar.get_x() + bar.get_width()/2., height,
+                                f'{height:.3f}',
+                                ha='center', va='bottom')
+                    
+                    plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+            
+            plt.suptitle(title)
+            plt.tight_layout()
+            self._save_plot(filename)
             
         except Exception as e:
             logging.error(f"Metric plot error: {str(e)}")
@@ -109,13 +126,15 @@ class Visualizer:
                 y,
                 train_sizes=train_sizes,
                 cv=CV_FOLDS,
-                n_jobs=-1,
+                n_jobs=1,
                 scoring='accuracy'
             )
+            
             train_mean = np.mean(train_scores, axis=1)
             train_std = np.std(train_scores, axis=1)
             test_mean = np.mean(test_scores, axis=1)
             test_std = np.std(test_scores, axis=1)
+            
             plt.figure(figsize=(10, 6))
             plt.plot(train_sizes_abs, train_mean, label='Training score')
             plt.fill_between(train_sizes_abs, train_mean - train_std, train_mean + train_std, alpha=0.1)
@@ -128,16 +147,13 @@ class Visualizer:
             plt.legend(loc='best')
             plt.grid(True)
             plt.tight_layout()
-
-            plt.savefig(filename)
-            plt.close()
+            self._save_plot(filename)
             
         except Exception as e:
             logging.error(f"Learning curve plot error: {str(e)}")
             raise
     
     def plot_feature_importance(self, feature_names, importance, title='Feature Importance', filename='feature_importance.png'):
-
         plt.figure(figsize=(10, 6))
         indices = np.argsort(importance)
         plt.barh(range(len(indices)), importance[indices])

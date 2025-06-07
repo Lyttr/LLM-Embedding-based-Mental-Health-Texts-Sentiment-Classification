@@ -5,7 +5,7 @@ import numpy as np
 import json
 from pathlib import Path
 from data_processor import DataProcessor
-from model_trainer import ModelTrainer, LLMClassifier
+from model_trainer import ModelTrainer
 from visualizer import Visualizer
 from data_visualizer import DataVisualizer
 from config import EMB_MODELS
@@ -30,55 +30,25 @@ def setup_directories():
 
 def save_metrics_to_json(metrics_dict, filename):
     """Save metrics to JSON file, converting numpy types to Python native types."""
-
     metrics_json = {}
-    for model_name, metrics in metrics_dict.items():
-        metrics_json[model_name] = {
-            'accuracy': float(metrics['accuracy']),
-            'precision': float(metrics['precision']),
-            'recall': float(metrics['recall']),
-            'f1': float(metrics['f1'])
-        }
+    for model_name, algo_metrics in metrics_dict.items():
+        metrics_json[model_name] = {}
+        for algo, metrics in algo_metrics.items():
+            metrics_json[model_name][algo] = {}
+            for metric_name in ['accuracy', 'precision', 'recall', 'f1']:
+                if metric_name in metrics:
+                    metrics_json[model_name][algo][metric_name] = float(metrics[metric_name])
+                else:
+                    logging.warning(f"Metric {metric_name} not found for model {model_name} algorithm {algo}")
+                    metrics_json[model_name][algo][metric_name] = None
     
-  
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(metrics_json, f, indent=4, ensure_ascii=False)
     logging.info(f"Saved metrics to {filename}")
 
-def evaluate_llm(processor, trainer, viz, df, X_test_idx, y_test):
-    """Evaluate zero/few-shot LLM classifier."""
-    if 'OPENAI_API_KEY' not in os.environ:
-        logging.warning("LLM evaluation skipped: OPENAI_API_KEY not found.")
-        return {}
-
-    results = {}
-    try:
-        llm = LLMClassifier(os.environ['OPENAI_API_KEY'])
-
-        for prompt in ['basic', 'detailed', 'few_shot']:
-            logging.info(f"LLM prompt: {prompt}")
-            try:
-                predictions = llm.predict(df['statement'].iloc[X_test_idx], processor.label_map, prompt)
-                metrics = trainer.eval(predictions, X_test_idx, y_test, processor.label_map)
-                results[f"llm_{prompt}"] = metrics
-
-                viz.plot_cm(y_test, metrics['y_pred'], processor.label_map,
-                            f"Confusion Matrix - LLM {prompt}",
-                            f"confusion_matrix_llm_{prompt}.png")
-            except Exception as e:
-                logging.error(f"LLM prompt error ({prompt}): {e}")
-
-    except Exception as e:
-        logging.error(f"LLM init error: {e}")
-
-    return results
-
 def main():
     try:
-
         setup_directories()
-        
-
         viz = Visualizer()
         data_viz = DataVisualizer()
         
