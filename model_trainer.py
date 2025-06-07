@@ -58,7 +58,6 @@ class ModelTrainer:
 
             for algo in ['lr', 'rf', 'mlp']:
                 try:
-               
                     algo_plot_dir = os.path.join('plots', model_name, algo)
                     os.makedirs(algo_plot_dir, exist_ok=True)
                     
@@ -68,12 +67,11 @@ class ModelTrainer:
                     model_path = f'models/{model_name}_{algo}.joblib'
                     joblib.dump(model, model_path)
                     logging.info(f"Saved model {algo}")
-                    
-                    metrics = self._evaluate_model(
-                        X_test, y_test, model_name, algo
-                    )
+
+                    metrics = self._evaluate_model(X_test, y_test, model_name, algo)
                     algo_metrics[algo] = metrics
                     
+
                     self.visualizer.plot_learning_curve(
                         model,
                         X_train,
@@ -81,17 +79,7 @@ class ModelTrainer:
                         title=f'{algo} Learning Curve',
                         filename=os.path.join(algo_plot_dir, 'learning_curve.png')
                     )
-                    
-     
-                    y_pred = model.predict(X_test)
-                    self.visualizer.plot_cm(
-                        y_test,
-                        y_pred,
-                        labels=['negative', 'positive'],
-                        title=f'{algo} Confusion Matrix',
-                        filename=os.path.join(algo_plot_dir, 'confusion_matrix.png')
-                    )
-
+ 
                     if algo == 'rf':
                         self.visualizer.plot_feature_importance(
                             range(X_train.shape[1]),
@@ -103,6 +91,12 @@ class ModelTrainer:
                 except Exception as e:
                     logging.error(f"Error in {algo} for {model_name}: {str(e)}")
                     continue
+
+            self.visualizer.plot_metrics(
+                {model_name: algo_metrics},
+                title=f'{model_name} Model Performance Comparison',
+                filename=os.path.join('plots', model_name, 'model_performance_comparison.png')
+            )
             
             return algo_metrics
             
@@ -111,41 +105,34 @@ class ModelTrainer:
             raise
 
     def _evaluate_model(self, X_test, y_test, model_name, algo):
-
+        """Evaluate model and return metrics dictionary."""
         try:
-
-            if algo not in self.best_models:
-                raise ValueError(f"No trained model found for {algo}")
-                
-            best_model = self.best_models[algo]
+            model = self.best_models[algo]
+            y_pred = model.predict(X_test)
             
-            y_pred = best_model.predict(X_test)
-            y_test = np.array(y_test)
-            y_pred = np.array(y_pred)
+      
+            accuracy = accuracy_score(y_test, y_pred)
+            precision = precision_score(y_test, y_pred, average='weighted')
+            recall = recall_score(y_test, y_pred, average='weighted')
+            f1 = f1_score(y_test, y_pred, average='weighted')
+            
+           
             metrics = {
-                'accuracy': float(accuracy_score(y_test, y_pred)),
-                'precision': float(precision_score(y_test, y_pred, average='weighted')),
-                'recall': float(recall_score(y_test, y_pred, average='weighted')),
-                'f1': float(f1_score(y_test, y_pred, average='weighted'))
+                'accuracy': accuracy,
+                'precision': precision,
+                'recall': recall,
+                'f1': f1
             }
-            cm = confusion_matrix(y_test, y_pred)
-            self.visualizer.plot_confusion_matrix(
-                cm,
-                title=f'{algo} Confusion Matrix',
-                filename=f'plots/{model_name}/{algo}/confusion_matrix.png'
-            )
-            self.visualizer.plot_learning_curve(
-                best_model,
-                X_test,
-                y_test,
-                title=f'{algo} Learning Curve',
-                filename=f'plots/{model_name}/{algo}/learning_curve.png'
-            )
+ 
+            algo_plot_dir = os.path.join('plots', model_name, algo)
+            os.makedirs(algo_plot_dir, exist_ok=True)
             
-            self.visualizer.plot_metrics(
-                metrics,
-                title=f'{model_name} - {algo} Performance',
-                filename=f'plots/{model_name}/{algo}/model_performance_comparison.png'
+            self.visualizer.plot_cm(
+                y_test,
+                y_pred,
+                labels=['negative', 'positive'],
+                title=f'{algo} Confusion Matrix',
+                filename=os.path.join(algo_plot_dir, 'confusion_matrix.png')
             )
             
             return metrics
