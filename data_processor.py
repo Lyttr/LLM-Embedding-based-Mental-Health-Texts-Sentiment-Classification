@@ -1,122 +1,123 @@
-import pandas as pd
+import os
 import numpy as np
+import pandas as pd
 from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
-from config import DATA_PATH, EMB_MODELS, TEST_SIZE, RANDOM_STATE
+from sklearn.preprocessing import StandardScaler
 import logging
+from pathlib import Path
+from config import EMB_MODELS, TEST_SIZE, RANDOM_STATE, DATA_PATH
+
+# Disable tokenizers parallelism to avoid deadlocks
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 class DataProcessor:
-    def __init__(self, model_name='minilm'):
-        """Initialize data processor with specified model.
+    def __init__(self, model_name):
+        """Initialize data processor with specified embedding model."""
+        if model_name not in EMB_MODELS:
+            raise ValueError(f"Unknown model: {model_name}")
         
-        Args:
-            model_name (str): Name of the embedding model to use. Defaults to 'minilm'.
-        """
-        self.model = SentenceTransformer(EMB_MODELS[model_name])
-        self.label_map = {}
-        self.reverse_label_map = {}
+        self.model_name = model_name
+        self.model_config = EMB_MODELS[model_name]
+        self.model = SentenceTransformer(self.model_config['model_name'])
+        self.label_map = {
+            'positive': 0,
+            'negative': 1,
+            'neutral': 2
+        }
+        self.max_length = self.model_config.get('max_length', 128)
+        self.scaler = StandardScaler()
     
-    def load_data(self):
-        """Load and preprocess the dataset.
-        
-        Returns:
-            pd.DataFrame: Cleaned and preprocessed dataframe
-        """
-        try:
-            # Load data
-            df = pd.read_csv(DATA_PATH)
-            logging.info(f"原始数据行数: {len(df)}")
+    def load_data(self, filepath=None):
+        """Load and prepare the dataset."""
+        if filepath is None:
+            filepath = DATA_PATH
             
-            # Clean data
+        try:
+            if not os.path.exists(filepath):
+                raise FileNotFoundError(f"Data file not found: {filepath}")
+                
+            df = pd.read_csv(filepath)
             df = df.dropna(subset=['statement', 'status'])
-            logging.info(f"删除空值后的行数: {len(df)}")
-            
-            df['statement'] = df['statement'].astype(str)
-            
-            
-            
+            if 'statement' not in df.columns or 'status' not in df.columns:
+                raise ValueError("Data file must contain 'statement' and 'status' columns")
+                
+            logging.info(f"Loaded {len(df)} samples from {filepath}")
             return df
-        except FileNotFoundError:
-            raise Exception(f"Data file not found: {DATA_PATH}")
         except Exception as e:
-            raise Exception(f"Failed to load data: {str(e)}")
-    
+            logging.error(f"Error loading data: {e}")
+            raise
+
     def prepare_labels(self, df):
-        """Prepare labels for classification.
+        """Convert mental health status labels to numeric values."""
+        if 'status' not in df.columns:
+            raise ValueError("DataFrame must contain 'status' column")
+            
+        # Get unique mental health statuses
+        statuses = sorted(df['status'].unique())
         
-        Args:
-            df (pd.DataFrame): Input dataframe with 'status' column
+        # Log status distribution
+        status_counts = df['status'].value_counts()
+        logging.info("Mental health status distribution in dataset:")
+        for status, count in status_counts.items():
+            logging.info(f"{status}: {count} samples")
             
-        Returns:
-            np.ndarray: Numeric labels
-        """
-        try:
-            # Create label mappings
-            unique_labels = sorted(df['status'].unique())
-            self.label_map = {label: idx for idx, label in enumerate(unique_labels)}
-            self.reverse_label_map = {idx: label for label, idx in self.label_map.items()}
-            
-            # Convert labels to numeric values
-            return df['status'].map(self.label_map).values
-        except Exception as e:
-            raise Exception(f"Failed to prepare labels: {str(e)}")
-    
-    def get_embeddings(self, texts):
-        """Generate embeddings for input texts.
+        # Create label map for mental health statuses
+        self.label_map = {status: i for i, status in enumerate(statuses)}
+        logging.info(f"Label mapping: {self.label_map}")
         
-        Args:
-            texts (Union[pd.Series, list]): Input texts to encode
+        return df['status'].map(self.label_map)
+
+    def generate_embeddings(self, texts):
+        """Generate embeddings for texts using the specified model."""
+        if not texts:
+            raise ValueError("No texts provided for embedding generation")
             
-        Returns:
-            np.ndarray: Text embeddings
-        """
-        try:
-            # Convert to list and ensure string type
-            if isinstance(texts, pd.Series):
-                texts = texts.tolist()
-            texts = [str(text) for text in texts]
-            
-            # Generate embeddings
-            return self.model.encode(texts)
-        except Exception as e:
-            raise Exception(f"Failed to generate embeddings: {str(e)}")
-    
-    def split_data(self, X, y):
-        """Split data into train and test sets.
+        embeddings_path = Path('models') / f'embeddings_{self.model_name}.npy'
         
-        Args:
-            X (np.ndarray): Features
-            y (np.ndarray): Labels
-            
-        Returns:
-            tuple: (X_train, X_test, y_train, y_test)
-        """
-        try:
-            return train_test_split(
-                X, y,
-                test_size=TEST_SIZE,
-                random_state=RANDOM_STATE,
-                stratify=y
-            )
-        except Exception as e:
-            raise Exception(f"Failed to split data: {str(e)}")
-    
+        # Check if embeddings already exist
+        if embeddings_path.exists():
+            logging.info(f"Loading existing embeddings from {embeddings_path}")
+            return np.load(embeddings_path)
+        
+        logging.info(f"Generating embeddings using {self.model_name}")
+        embeddings = self.model.encode(
+            texts,
+            show_progress_bar=True,
+            max_length=self.max_length,
+            convert_to_numpy=True
+        )
+        
+        # Save embeddings
+        embeddings_path.parent.mkdir(exist_ok=True)
+        np.save(embeddings_path, embeddings)
+        logging.info(f"Saved embeddings to {embeddings_path}")
+        
+        return embeddings
+
     def process_data(self):
-        """Complete data processing pipeline.
-        
-        Returns:
-            tuple: (X_train, X_test, y_train, y_test, df)
-        """
-        # Load and preprocess data
+        """Process data and generate embeddings."""
+        # Load data
         df = self.load_data()
+        
+        # Add text length column
+        df['text_length'] = df['statement'].str.len()
         
         # Prepare labels
         y = self.prepare_labels(df)
         
         # Generate embeddings
-        X = self.get_embeddings(df['statement'])
+        X = self.generate_embeddings(df['statement'].tolist())
         
-        # Split data
-        X_train, X_test, y_train, y_test = self.split_data(X, y)
+        # Standardize features
+        X = self.scaler.fit_transform(X)
+        
+        # Split data with stratification to maintain class distribution
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, 
+            test_size=TEST_SIZE, 
+            random_state=RANDOM_STATE,
+            stratify=y  # Ensure balanced class distribution in splits
+        )
         
         return X_train, X_test, y_train, y_test, df 

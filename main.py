@@ -1,11 +1,14 @@
 import logging
 import os
 import time
+import numpy as np
+import json
 from pathlib import Path
 from data_processor import DataProcessor
 from model_trainer import ModelTrainer, LLMClassifier
 from visualizer import Visualizer
 from config import EMB_MODELS
+import joblib
 
 # === Logging Setup ===
 logging.basicConfig(
@@ -24,48 +27,78 @@ def setup_directories():
         Path(name).mkdir(exist_ok=True)
         logging.info(f"Directory created or exists: {name}")
 
-def evaluate_embedding_models(processor, trainer, viz, df, y):
+def save_metrics_to_json(metrics_dict, filename):
+    """Save metrics to JSON file, converting numpy types to Python native types."""
+    # Convert numpy types to Python native types
+    metrics_json = {}
+    for model_name, metrics in metrics_dict.items():
+        metrics_json[model_name] = {
+            'accuracy': float(metrics['accuracy']),
+            'precision': float(metrics['precision']),
+            'recall': float(metrics['recall']),
+            'f1': float(metrics['f1']),
+            'roc_auc': {k: float(v) for k, v in metrics['roc_auc'].items()}
+        }
+    
+    # Save to JSON file
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(metrics_json, f, indent=4, ensure_ascii=False)
+    logging.info(f"Saved metrics to {filename}")
+
+def evaluate_embedding_models(processor, trainer, viz, X_train, X_test, y_train, y_test):
     """Train and evaluate traditional ML models on different sentence embeddings."""
     results, curves = {}, {}
+    
+    # Create model-specific plot directories
+    model_plot_dir = processor.model_name
+    os.makedirs(os.path.join(viz.save_dir, model_plot_dir), exist_ok=True)
+    
+    # Train and evaluate models
+    for algo in ['lr', 'rf', 'mlp', 'svm']:
+        # Create algorithm-specific plot directories
+        algo_plot_dir = os.path.join(model_plot_dir, algo)
+        os.makedirs(os.path.join(viz.save_dir, algo_plot_dir), exist_ok=True)
+        
+        model_path = f'models/{processor.model_name}_{algo}.joblib'
+        
+        # Check if model already exists
+        if os.path.exists(model_path):
+            logging.info(f"Loading existing model {algo}")
+            trainer.best_models[algo] = joblib.load(model_path)
+            # Evaluate the loaded model
+            metrics = trainer.eval(trainer.best_models[algo], X_test, y_test, processor.label_map)
+            results[algo] = metrics
+        else:
+            logging.info(f"Training new model: {algo}")
+            try:
+                sizes, train_scores, test_scores = trainer.train(algo, X_train, y_train)
+                curves[algo] = (sizes, train_scores, test_scores)
 
-    for name, model in EMB_MODELS.items():
-        logging.info(f"Embedding with: {name}")
-        try:
-            from sentence_transformers import SentenceTransformer
-            processor.model = SentenceTransformer(model)
-            X = processor.get_embeddings(df['statement'])
-            X_train, X_test, y_train, y_test = processor.split_data(X, y)
+                metrics = trainer.eval(trainer.best_models[algo], X_test, y_test, processor.label_map)
+                results[algo] = metrics
 
-            for algo in ['lr', 'rf', 'mlp', 'svm']:
-                logging.info(f"Training model: {algo} on embeddings: {name}")
-                try:
-                    sizes, train_scores, test_scores = trainer.train(algo, X_train, y_train)
-                    curves[f"{name}_{algo}"] = (sizes, train_scores, test_scores)
+                # Save the trained model
+                joblib.dump(trainer.best_models[algo], model_path)
+                logging.info(f"Saved model {algo}")
+                
+                # Plot learning curve for newly trained models
+                viz.plot_learning_curve(sizes, train_scores, test_scores,
+                                    f"Learning Curve - {algo}",
+                                    os.path.join(algo_plot_dir, 'learning_curve.png'))
+            except Exception as e:
+                logging.error(f"Training error ({algo}): {e}")
+                continue
 
-                    metrics = trainer.eval(trainer.best_models[algo], X_test, y_test, processor.label_map)
-                    results[f"{name}_{algo}"] = metrics
+        # Generate visualizations regardless of whether model was loaded or trained
+        viz.plot_cm(y_test, metrics['y_pred'], processor.label_map,
+                    f"Confusion Matrix - {algo}",
+                    os.path.join(algo_plot_dir, 'confusion_matrix.png'))
 
-                    viz.plot_cm(y_test, metrics['y_pred'], processor.label_map,
-                                f"CM - {name} {algo}", f"confusion_matrix_{name}_{algo}.png")
-                    for label in processor.label_map:
-                        viz.plot_roc_curve(metrics['fpr'][label], metrics['tpr'][label],
-                                           metrics['roc_auc'][label], f"ROC - {name} {algo} {label}",
-                                           f"roc_curve_{name}_{algo}_{label}.png")
-                except Exception as e:
-                    logging.error(f"Training error ({name}/{algo}): {e}")
-
-        except Exception as e:
-            logging.error(f"Embedding error ({name}): {e}")
-
-    for key, (sizes, tr_scores, te_scores) in curves.items():
-        try:
-            viz.plot_learning_curve(sizes, tr_scores, te_scores,
-                                    f"Learning Curve - {key}", f"learning_curve_{key}.png")
-        except Exception as e:
-            logging.error(f"Learning curve error ({key}): {e}")
-
+    # Plot overall metrics comparison
     try:
-        viz.plot_metrics(results, filename='model_performance_comparison.png')
+        viz.plot_metrics(results, filename=os.path.join(model_plot_dir, 'model_performance_comparison.png'))
+        # Save metrics to JSON
+        save_metrics_to_json(results, os.path.join('results', f'{processor.model_name}_metrics.json'))
     except Exception as e:
         logging.error(f"Metric plot error: {e}")
 
@@ -108,35 +141,49 @@ def main():
         setup_directories()
 
         # Initialize components
-        processor = DataProcessor()
         trainer = ModelTrainer()
         viz = Visualizer(save_dir='plots')
 
-        # Data processing
-        logging.info("Processing data...")
-        X_train, X_test, y_train, y_test, df = processor.process_data()
+        # Process data with each embedding model
+        all_results = {}
+        for model_name in EMB_MODELS.keys():
+            logging.info(f"\nProcessing with {model_name} model...")
+            
+            # Initialize processor with current model
+            processor = DataProcessor(model_name=model_name)
+            
+            # Data processing
+            logging.info("Processing data...")
+            X_train, X_test, y_train, y_test, df = processor.process_data()
 
-        # Data visualizations
-        try:
-            viz.plot_len_dist(df, len_col='text_length', filename='data_length_distribution.png')
-            viz.plot_cls_dist(df, filename='data_class_distribution.png')
-            viz.plot_len_by_cls(df, len_col='text_length', filename='data_length_by_class.png')
-            viz.plot_wc(" ".join(df['statement']), filename='data_wordcloud.png')
-        except Exception as e:
-            logging.error(f"Visualization error: {e}")
+            # Data visualizations (only for the first model)
+            if model_name == list(EMB_MODELS.keys())[0]:
+                # Create data visualization directory
+                data_viz_dir = 'data_analysis'
+                os.makedirs(os.path.join(viz.save_dir, data_viz_dir), exist_ok=True)
 
-        # Train & evaluate models
-        logging.info("Training ML models...")
-        model_results = evaluate_embedding_models(processor, trainer, viz, df, y_train)
+                try:
+                    viz.plot_len_dist(df, len_col='text_length', 
+                                    filename=os.path.join(data_viz_dir, 'text_length_distribution.png'))
+                    viz.plot_cls_dist(df, 
+                                    filename=os.path.join(data_viz_dir, 'class_distribution.png'))
+                    viz.plot_len_by_cls(df, len_col='text_length', 
+                                      filename=os.path.join(data_viz_dir, 'length_by_class.png'))
+                    viz.plot_wc(" ".join(df['statement']), 
+                               filename=os.path.join(data_viz_dir, 'wordcloud.png'))
+                except Exception as e:
+                    logging.error(f"Visualization error: {e}")
 
-        # Evaluate LLM
-        logging.info("Evaluating LLM baseline...")
-        llm_results = evaluate_llm(processor, trainer, viz, df, X_test.index, y_test)
+            # Train & evaluate models
+            logging.info("Training ML models...")
+            model_results = evaluate_embedding_models(processor, trainer, viz, X_train, X_test, y_train, y_test)
+            all_results.update({f"{model_name}_{k}": v for k, v in model_results.items()})
 
-        # Combined metrics visualization
-        all_results = {**model_results, **llm_results}
+        # Plot overall performance comparison
         try:
             viz.plot_metrics(all_results, filename='all_models_performance_comparison.png')
+            # Save all metrics to JSON
+            save_metrics_to_json(all_results, 'results/all_models_metrics.json')
         except Exception as e:
             logging.error(f"Final performance plot error: {e}")
 

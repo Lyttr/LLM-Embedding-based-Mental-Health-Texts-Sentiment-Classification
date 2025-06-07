@@ -1,142 +1,138 @@
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV, learning_curve
 from sklearn.metrics import (
-    accuracy_score, confusion_matrix, classification_report,
-    precision_score, recall_score, f1_score, roc_auc_score,
-    precision_recall_fscore_support, roc_curve, auc
-)
-from config import (
-    LR_PARAMS, RF_PARAMS, MLP_PARAMS, SVM_PARAMS,
-    CV_FOLDS, CV_SCORING, LLM_MODEL, LLM_TEMP,
-    LLM_MAX_TOKENS, LLM_PROMPTS
+    accuracy_score, precision_score, recall_score, f1_score,
+    roc_curve, auc, confusion_matrix, classification_report
 )
 import openai
-import time
+import logging
+from config import (
+    MODEL_PARAMS,
+    CV_FOLDS,
+    RANDOM_STATE,
+    LLM_MODEL,
+    LLM_TEMP,
+    LLM_MAX_TOKENS,
+    LLM_PROMPTS
+)
 
 class ModelTrainer:
     def __init__(self):
-        self.clfs = {
-            'lr': LogisticRegression(),
-            'rf': RandomForestClassifier(),
-            'mlp': MLPClassifier(),
-            'svm': SVC(probability=True)
-        }
         self.best_models = {}
-        self.metrics = {}
-    
-    def train(self, name, X, y):
-        """Train model with hyperparameter tuning."""
-        if name == 'lr':
-            params = LR_PARAMS
-        elif name == 'rf':
-            params = RF_PARAMS
-        elif name == 'mlp':
-            params = MLP_PARAMS
-        elif name == 'svm':
-            params = SVM_PARAMS
-        else:
-            raise ValueError(f"Unknown model: {name}")
+        self.models = {
+            'lr': LogisticRegression(random_state=RANDOM_STATE),
+            'rf': RandomForestClassifier(random_state=RANDOM_STATE),
+            'mlp': MLPClassifier(random_state=RANDOM_STATE),
+            'svm': SVC(random_state=RANDOM_STATE, probability=True)
+        }
+
+    def train(self, algo, X_train, y_train):
+        """Train model with GridSearchCV."""
+        if algo not in self.models:
+            raise ValueError(f"Unknown algorithm: {algo}")
+
+        # Get parameters for the algorithm
+        param_grid = MODEL_PARAMS[algo]
         
-        grid = GridSearchCV(
-            self.clfs[name],
-            params,
+        # Create GridSearchCV object
+        grid_search = GridSearchCV(
+            self.models[algo],
+            param_grid,
             cv=CV_FOLDS,
-            scoring=CV_SCORING,
-            refit='f1_weighted',
+            scoring='accuracy',
             n_jobs=-1,
             verbose=1
         )
+
+        # Fit the model
+        grid_search.fit(X_train, y_train)
         
-        grid.fit(X, y)
-        self.best_models[name] = grid.best_estimator_
+        # Store the best model
+        self.best_models[algo] = grid_search.best_estimator_
         
-        # Get learning curve
-        train_sizes, train_scores, test_scores = learning_curve(
-            grid.best_estimator_, X, y,
+        # Get learning curve data
+        train_sizes = np.linspace(0.1, 1.0, 10)
+        train_sizes_abs, train_scores, test_scores = learning_curve(
+            self.best_models[algo],
+            X_train,
+            y_train,
+            train_sizes=train_sizes,
             cv=CV_FOLDS,
-            scoring='f1_weighted',
             n_jobs=-1,
-            train_sizes=np.linspace(0.1, 1.0, 10)
+            scoring='accuracy'
         )
         
-        return train_sizes, train_scores, test_scores
-    
-    def eval(self, clf, X, y, labels):
+        return train_sizes_abs, train_scores, test_scores
+
+    def eval(self, model, X_test, y_test, label_map):
         """Evaluate model performance."""
-        y_pred = clf.predict(X)
-        y_prob = clf.predict_proba(X)
+        # Get predictions
+        y_pred = model.predict(X_test)
         
-        # Calculate metrics
-        accuracy = accuracy_score(y, y_pred)
-        precision, recall, f1, _ = precision_recall_fscore_support(
-            y, y_pred, average='weighted'
-        )
-        
-        # Calculate ROC curve for each class
-        fpr = dict()
-        tpr = dict()
-        roc_auc = dict()
-        
-        for i, label in enumerate(labels):
-            fpr[label], tpr[label], _ = roc_curve(
-                (y == i).astype(int),
-                y_prob[:, i]
-            )
-            roc_auc[label] = auc(fpr[label], tpr[label])
-        
-        return {
-            'accuracy': accuracy,
-            'precision': precision,
-            'recall': recall,
-            'f1': f1,
-            'fpr': fpr,
-            'tpr': tpr,
-            'roc_auc': roc_auc,
+        # Calculate basic metrics
+        metrics = {
+            'accuracy': accuracy_score(y_test, y_pred),
+            'precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
+            'recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
+            'f1': f1_score(y_test, y_pred, average='weighted', zero_division=0),
             'y_pred': y_pred,
-            'y_prob': y_prob
+            'classification_report': classification_report(
+                y_test, 
+                y_pred, 
+                target_names=label_map.keys(),
+                output_dict=True
+            )
         }
+        
+        # Log detailed metrics
+        logging.info("\nClassification Report:")
+        logging.info(classification_report(y_test, y_pred, target_names=label_map.keys()))
+        logging.info(f"Accuracy: {metrics['accuracy']:.4f}")
+        logging.info(f"Weighted Precision: {metrics['precision']:.4f}")
+        logging.info(f"Weighted Recall: {metrics['recall']:.4f}")
+        logging.info(f"Weighted F1 Score: {metrics['f1']:.4f}")
+        
+        return metrics
 
 class LLMClassifier:
     def __init__(self, api_key):
-        """Initialize LLM classifier."""
+        """Initialize OpenAI API."""
         openai.api_key = api_key
         self.model = LLM_MODEL
-        self.temp = LLM_TEMP
+        self.temperature = LLM_TEMP
         self.max_tokens = LLM_MAX_TOKENS
         self.prompts = LLM_PROMPTS
-    
-    def predict(self, texts, categories, prompt_type='basic'):
-        """Make predictions using LLM."""
+
+    def predict(self, texts, label_map, prompt_type='basic'):
+        """Get predictions from GPT-3.5."""
+        if prompt_type not in self.prompts:
+            raise ValueError(f"Unknown prompt type: {prompt_type}")
+
         predictions = []
-        prompt = self.prompts[prompt_type]
-        
         for text in texts:
             try:
                 response = openai.ChatCompletion.create(
                     model=self.model,
-                    messages=[{
-                        'role': 'user',
-                        'content': prompt.format(
-                            categories=', '.join(categories),
-                            text=text
-                        )
-                    }],
-                    temperature=self.temp,
+                    messages=[
+                        {"role": "system", "content": "You are a sentiment analysis expert."},
+                        {"role": "user", "content": self.prompts[prompt_type].format(text=text)}
+                    ],
+                    temperature=self.temperature,
                     max_tokens=self.max_tokens
                 )
-                
                 pred = response.choices[0].message.content.strip().lower()
-                predictions.append(pred)
-                
-                # Rate limiting
-                time.sleep(0.5)
-                
+                # Map prediction to label
+                if pred in label_map:
+                    predictions.append(pred)
+                else:
+                    # Default to neutral if prediction is unclear
+                    predictions.append('neutral')
             except Exception as e:
-                print(f"Error in prediction: {e}")
-                predictions.append(None)
-        
+                logging.error(f"OpenAI API error: {e}")
+                predictions.append('neutral')
+
         return predictions 

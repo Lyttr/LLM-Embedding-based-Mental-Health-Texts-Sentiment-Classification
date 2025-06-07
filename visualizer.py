@@ -33,22 +33,25 @@ class Visualizer:
     
     def plot_metrics(self, metrics_dict, title='Model Performance Comparison', filename='metrics_comparison.png'):
         """Plot performance metrics comparison."""
+        # Extract basic metrics
         models = list(metrics_dict.keys())
-        metrics = list(metrics_dict[models[0]].keys())
+        metric_names = ['accuracy', 'precision', 'recall', 'f1']
         
+        # Prepare data for plotting
         x = np.arange(len(models))
-        width = 0.8 / len(metrics)
+        width = 0.8 / len(metric_names)
         
-        plt.figure(figsize=(10, 6))
-        for i, metric in enumerate(metrics):
+        plt.figure(figsize=(12, 6))
+        for i, metric in enumerate(metric_names):
             values = [metrics_dict[model][metric] for model in models]
-            plt.bar(x + i*width, values, width, label=metric)
+            plt.bar(x + i*width, values, width, label=metric.capitalize())
         
         plt.xlabel('Models')
         plt.ylabel('Score')
         plt.title(title)
-        plt.xticks(x + width*len(metrics)/2, models, rotation=45)
+        plt.xticks(x + width*len(metric_names)/2, models, rotation=45, ha='right')
         plt.legend()
+        plt.grid(True, alpha=0.3)
         plt.tight_layout()
         self._save_plot(filename)
     

@@ -5,82 +5,88 @@ DATA_PATH = Path('data/Combined Data.csv')
 
 # Model params
 EMB_MODELS = {
-    'minilm': 'all-MiniLM-L6-v2',
-    'mpnet': 'all-mpnet-base-v2',
-    'distilbert': 'all-distilroberta-v1',
-    'use': 'all-MiniLM-L12-v2'
+    'all-MiniLM-L6-v2': {
+        'model_name': 'sentence-transformers/all-MiniLM-L6-v2',
+        'max_length': 128
+    },
+    'all-mpnet-base-v2': {
+        'model_name': 'sentence-transformers/all-mpnet-base-v2',
+        'max_length': 128
+    },
+    'all-distilroberta-v1': {
+        'model_name': 'sentence-transformers/all-distilroberta-v1',
+        'max_length': 128
+    },
+    'all-MiniLM-L12-v2': {
+        'model_name': 'sentence-transformers/all-MiniLM-L12-v2',
+        'max_length': 128
+    }
 }
 
+# === Model Configurations ===
+MODEL_PARAMS = {
+    'lr': {
+        'C': [0.1, 1.0, 10.0],
+        'max_iter': [1000],
+        'n_jobs': [-1]
+    },
+    'rf': {
+        'n_estimators': [50],
+        'max_depth': [10],
+        'min_samples_split': [5],
+        'n_jobs': [-1]
+    },
+    'mlp': {
+        'hidden_layer_sizes': [(64,)],
+        'max_iter': [1000],
+        'early_stopping': [True],
+        'solver': ['adam'],
+        'learning_rate_init': [0.001]
+    },
+    'svm': {
+        'C': [0.1, 1.0, 10.0],
+        'kernel': ['rbf'],
+        'probability': [True],
+        'max_iter': [1000]
+    }
+}
+
+# === Training Configurations ===
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
+CV_FOLDS = 3
 
-# LLM params
+# === LLM Configurations ===
 LLM_MODEL = "gpt-3.5-turbo"
-LLM_TEMP = 0.0
+LLM_TEMP = 0.3
 LLM_MAX_TOKENS = 10
+
+# LLM prompt templates for different classification strategies
 LLM_PROMPTS = {
-    'basic': """Classify the following text into one of these categories: {categories}
-Text: {text}
-Category:""",
+    # Basic prompt for simple classification
+    'basic': "Classify the sentiment of this text as positive, negative, or neutral: {text}",
     
-    'detailed': """Analyze the sentiment of the following text and classify it into one of these categories: {categories}
-Consider the emotional tone, context, and overall sentiment.
-Text: {text}
-Category:""",
+    # Detailed prompt for more nuanced analysis
+    'detailed': """Analyze the sentiment of this text in detail. 
+Consider the emotional tone, context, and implications. 
+Classify as positive, negative, or neutral: {text}""",
     
-    'few_shot': """Here are some examples of text classification:
-Text: "I feel so happy and excited about my future!"
-Category: positive
+    # Few-shot prompt with examples
+    'few_shot': """Here are some examples of sentiment classification:
 
-Text: "I'm really struggling with my mental health lately."
-Category: negative
+Text: "I feel happy and content today."
+Sentiment: positive
 
-Now classify this text into one of these categories: {categories}
-Text: {text}
-Category:"""
+Text: "This is terrible and I hate it."
+Sentiment: negative
+
+Text: "The weather is cloudy."
+Sentiment: neutral
+
+Now classify this text: {text}"""
 }
 
-# Classifier params
-LR_PARAMS = {
-    'max_iter': 1000,
-    'random_state': RANDOM_STATE,
-    'n_jobs': -1,
-    'C': [0.1, 1.0, 10.0],
-    'solver': ['lbfgs', 'liblinear']
-}
-
-MLP_PARAMS = {
-    'hidden_layer_sizes': [(64,), (128,), (64, 32), (128, 64)],
-    'activation': ['relu', 'tanh'],
-    'solver': ['adam', 'sgd'],
-    'max_iter': 200,
-    'random_state': RANDOM_STATE,
-    'early_stopping': True,
-    'verbose': True,
-    'n_jobs': -1
-}
-
-RF_PARAMS = {
-    'n_estimators': [50, 100, 200],
-    'max_depth': [None, 10, 20],
-    'min_samples_split': [2, 5],
-    'random_state': RANDOM_STATE,
-    'n_jobs': -1,
-    'verbose': 1
-}
-
-SVM_PARAMS = {
-    'C': [0.1, 1.0, 10.0],
-    'kernel': ['linear', 'rbf'],
-    'gamma': ['scale', 'auto'],
-    'random_state': RANDOM_STATE
-}
-
-# Cross-validation
-CV_FOLDS = 5
-CV_SCORING = ['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted']
-
-# Viz params
+# === Visualization Configurations ===
 FIG_SIZE = (6, 5)
 WC_SIZE = (800, 400)
 PLOT_STYLE = 'seaborn'
