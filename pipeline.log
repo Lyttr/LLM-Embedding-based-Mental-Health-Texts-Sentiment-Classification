@@ -1,0 +1,65 @@
+2025-06-06 19:43:39,350 - INFO - === Sentiment Analysis Pipeline Start ===
+2025-06-06 19:43:39,350 - INFO - Directory created or exists: plots
+2025-06-06 19:43:39,350 - INFO - Directory created or exists: models
+2025-06-06 19:43:39,351 - INFO - Directory created or exists: results
+2025-06-06 19:43:39,363 - INFO - Use pytorch device_name: mps
+2025-06-06 19:43:39,363 - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-06-06 19:43:42,524 - INFO - Processing data...
+2025-06-06 19:47:07,108 - INFO - Training ML models...
+2025-06-06 19:47:07,109 - ERROR - Pipeline failed: 'label'
+Traceback (most recent call last):
+  File "/Users/gaoyuanji/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3805, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'label'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/gaoyuanji/pystudy/LLM-Embedding-based-Mental-Health-Texts-Sentiment-Classification/main.py", line 130, in main
+    model_results = evaluate_embedding_models(processor, trainer, viz, df, df['label'])
+                                                                           ~~^^^^^^^^^
+  File "/Users/gaoyuanji/miniconda3/lib/python3.12/site-packages/pandas/core/frame.py", line 4102, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gaoyuanji/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3812, in get_loc
+    raise KeyError(key) from err
+KeyError: 'label'
+2025-06-06 19:48:28,318 - INFO - === Sentiment Analysis Pipeline Start ===
+2025-06-06 19:48:28,318 - INFO - Directory created or exists: plots
+2025-06-06 19:48:28,318 - INFO - Directory created or exists: models
+2025-06-06 19:48:28,318 - INFO - Directory created or exists: results
+2025-06-06 19:48:28,327 - INFO - Use pytorch device_name: mps
+2025-06-06 19:48:28,327 - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-06-06 19:48:30,296 - INFO - Processing data...
+2025-06-06 19:50:42,727 - INFO - === Sentiment Analysis Pipeline Start ===
+2025-06-06 19:50:42,727 - INFO - Directory created or exists: plots
+2025-06-06 19:50:42,727 - INFO - Directory created or exists: models
+2025-06-06 19:50:42,727 - INFO - Directory created or exists: results
+2025-06-06 19:50:42,739 - INFO - Use pytorch device_name: mps
+2025-06-06 19:50:42,739 - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-06-06 19:50:44,651 - INFO - Processing data...
+2025-06-06 19:50:44,878 - INFO - 原始数据行数: 53043
+2025-06-06 19:50:44,883 - INFO - 删除空值后的行数: 52681
+2025-06-06 19:50:44,887 - INFO - 
+各类别数据分布:
+2025-06-06 19:50:44,887 - INFO - Normal: 16343条
+2025-06-06 19:50:44,887 - INFO - Depression: 15404条
+2025-06-06 19:50:44,887 - INFO - Suicidal: 10652条
+2025-06-06 19:50:44,887 - INFO - Anxiety: 3841条
+2025-06-06 19:50:44,887 - INFO - Bipolar: 2777条
+2025-06-06 19:50:44,887 - INFO - Stress: 2587条
+2025-06-06 19:50:44,887 - INFO - Personality disorder: 1077条
+2025-06-06 19:50:44,896 - INFO - 
+文本长度统计:
+2025-06-06 19:50:44,897 - INFO - 最短文本长度: 2
+2025-06-06 19:50:44,897 - INFO - 最长文本长度: 32759
+2025-06-06 19:50:44,897 - INFO - 平均文本长度: 578.71
+2025-06-06 19:54:29,877 - INFO - Training ML models...
+2025-06-06 19:54:29,879 - INFO - Embedding with: minilm
+2025-06-06 19:54:29,884 - INFO - Use pytorch device_name: mps
+2025-06-06 19:54:29,884 - INFO - Load pretrained SentenceTransformer: all-MiniLM-L6-v2

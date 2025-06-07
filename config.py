@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Data paths
-DATA_PATH = Path('Combined Data.csv')
+DATA_PATH = Path('data/Combined Data.csv')
 
 # Model params
 EMB_MODELS = {

@@ -3,14 +3,23 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report
 from wordcloud import WordCloud
 import numpy as np
-from config import FIG_SIZE, WC_SIZE, PLOT_STYLE, COLOR_PALETTE
+from config import FIG_SIZE, WC_SIZE, COLOR_PALETTE
+import os
 
 class Visualizer:
-    def __init__(self):
-        plt.style.use(PLOT_STYLE)
+    def __init__(self, save_dir='plots'):
+        """Initialize visualizer with style settings."""
+        plt.style.use('seaborn-v0_8')  # Use a valid style name
         self.colors = sns.color_palette(COLOR_PALETTE)
+        self.save_dir = save_dir
+        os.makedirs(save_dir, exist_ok=True)
     
-    def plot_cm(self, y_true, y_pred, labels, title='Confusion Matrix'):
+    def _save_plot(self, filename):
+        """Save the current plot to file."""
+        plt.savefig(os.path.join(self.save_dir, filename), bbox_inches='tight', dpi=300)
+        plt.close()
+    
+    def plot_cm(self, y_true, y_pred, labels, title='Confusion Matrix', filename='confusion_matrix.png'):
         """Plot confusion matrix."""
         cm = confusion_matrix(y_true, y_pred)
         plt.figure(figsize=FIG_SIZE)
@@ -20,9 +29,9 @@ class Visualizer:
         plt.ylabel('True Label')
         plt.xlabel('Predicted Label')
         plt.tight_layout()
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_metrics(self, metrics_dict, title='Model Performance Comparison'):
+    def plot_metrics(self, metrics_dict, title='Model Performance Comparison', filename='metrics_comparison.png'):
         """Plot performance metrics comparison."""
         models = list(metrics_dict.keys())
         metrics = list(metrics_dict[models[0]].keys())
@@ -41,18 +50,18 @@ class Visualizer:
         plt.xticks(x + width*len(metrics)/2, models, rotation=45)
         plt.legend()
         plt.tight_layout()
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_len_dist(self, df, len_col='len'):
+    def plot_len_dist(self, df, len_col='len', filename='length_distribution.png'):
         """Plot text length distribution."""
         plt.figure(figsize=FIG_SIZE)
         sns.histplot(data=df, x=len_col, bins=30)
         plt.title('Text Length Distribution')
         plt.xlabel('Length')
         plt.ylabel('Count')
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_cls_dist(self, df, label_col='label'):
+    def plot_cls_dist(self, df, label_col='status', filename='class_distribution.png'):
         """Plot class distribution."""
         plt.figure(figsize=FIG_SIZE)
         sns.countplot(data=df, x=label_col, palette=self.colors)
@@ -61,9 +70,9 @@ class Visualizer:
         plt.ylabel('Count')
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_len_by_cls(self, df, len_col='len', label_col='label'):
+    def plot_len_by_cls(self, df, len_col='len', label_col='status', filename='length_by_class.png'):
         """Plot text length by class."""
         plt.figure(figsize=FIG_SIZE)
         sns.boxplot(data=df, x=label_col, y=len_col, palette=self.colors)
@@ -72,9 +81,9 @@ class Visualizer:
         plt.ylabel('Length')
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_wc(self, text, title='Word Cloud'):
+    def plot_wc(self, text, title='Word Cloud', filename='wordcloud.png'):
         """Plot word cloud."""
         wordcloud = WordCloud(width=WC_SIZE[0], height=WC_SIZE[1],
                             background_color='white').generate(text)
@@ -82,9 +91,9 @@ class Visualizer:
         plt.imshow(wordcloud, interpolation='bilinear')
         plt.axis('off')
         plt.title(title)
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_learning_curve(self, train_sizes, train_scores, test_scores, title='Learning Curve'):
+    def plot_learning_curve(self, train_sizes, train_scores, test_scores, title='Learning Curve', filename='learning_curve.png'):
         """Plot learning curve."""
         train_mean = np.mean(train_scores, axis=1)
         train_std = np.std(train_scores, axis=1)
@@ -101,9 +110,9 @@ class Visualizer:
         plt.ylabel('Score')
         plt.legend(loc='best')
         plt.grid(True)
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_feature_importance(self, feature_names, importance, title='Feature Importance'):
+    def plot_feature_importance(self, feature_names, importance, title='Feature Importance', filename='feature_importance.png'):
         """Plot feature importance."""
         plt.figure(figsize=(10, 6))
         indices = np.argsort(importance)
@@ -112,9 +121,9 @@ class Visualizer:
         plt.title(title)
         plt.xlabel('Importance')
         plt.tight_layout()
-        plt.show()
+        self._save_plot(filename)
     
-    def plot_roc_curve(self, fpr, tpr, roc_auc, title='ROC Curve'):
+    def plot_roc_curve(self, fpr, tpr, roc_auc, title='ROC Curve', filename='roc_curve.png'):
         """Plot ROC curve."""
         plt.figure(figsize=FIG_SIZE)
         plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
@@ -125,4 +134,4 @@ class Visualizer:
         plt.ylabel('True Positive Rate')
         plt.title(title)
         plt.legend(loc="lower right")
-        plt.show() 
+        self._save_plot(filename) 
