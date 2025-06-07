@@ -28,23 +28,27 @@ def setup_directories():
         Path(name).mkdir(exist_ok=True)
         logging.info(f"Directory created or exists: {name}")
 
-def save_metrics_to_json(metrics_dict, filename):
-    """Save metrics to JSON file, converting numpy types to Python native types."""
-    metrics_json = {}
-    for model_name, algo_metrics in metrics_dict.items():
-        metrics_json[model_name] = {}
-        for algo, metrics in algo_metrics.items():
-            metrics_json[model_name][algo] = {}
+def save_results_to_json(results_dict, filename):
+    """Save metrics and parameters to JSON file, converting numpy types to Python native types."""
+    results_json = {}
+    for model_name, model_results in results_dict.items():
+        results_json[model_name] = {
+            'metrics': {},
+            'parameters': model_results['parameters']
+        }
+        
+        for algo, metrics in model_results['metrics'].items():
+            results_json[model_name]['metrics'][algo] = {}
             for metric_name in ['accuracy', 'precision', 'recall', 'f1']:
                 if metric_name in metrics:
-                    metrics_json[model_name][algo][metric_name] = float(metrics[metric_name])
+                    results_json[model_name]['metrics'][algo][metric_name] = float(metrics[metric_name])
                 else:
                     logging.warning(f"Metric {metric_name} not found for model {model_name} algorithm {algo}")
-                    metrics_json[model_name][algo][metric_name] = None
+                    results_json[model_name]['metrics'][algo][metric_name] = None
     
     with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(metrics_json, f, indent=4, ensure_ascii=False)
-    logging.info(f"Saved metrics to {filename}")
+        json.dump(results_json, f, indent=4, ensure_ascii=False)
+    logging.info(f"Saved results to {filename}")
 
 def main():
     try:
@@ -75,11 +79,11 @@ def main():
             model_results[model_name] = trainer.train_and_evaluate(
                 X_train, X_test, y_train, y_test, model_name
             )
-        results_path = 'results/all_models_metrics.json'
-        save_metrics_to_json(model_results, results_path)
-        logging.info(f"Saved metrics to {results_path}")
+        results_path = 'results/all_models_results.json'
+        save_results_to_json(model_results, results_path)
+        logging.info(f"Saved results to {results_path}")
         viz.plot_metrics(
-            model_results,
+            {model_name: results['metrics'] for model_name, results in model_results.items()},
             title='All Models Performance Comparison',
             filename='plots/all_models_performance_comparison.png'
         )

@@ -51,6 +51,11 @@ TEST_SIZE = 0.2
 RANDOM_STATE = 42
 CV_FOLDS = 3
 
+# === Visualization Configurations ===
+FIG_SIZE = (6, 5)
+PLOT_STYLE = 'seaborn-v0_8'
+COLOR_PALETTE = 'husl'
+
 # === LLM Configurations ===
 LLM_MODEL = "gpt-3.5-turbo"
 LLM_TEMP = 0.3
@@ -113,7 +118,4 @@ Now classify this text: {text}
 Category:"""
 }
 
-FIG_SIZE = (6, 5)
-WC_SIZE = (800, 400)
-PLOT_STYLE = 'seaborn-v0_8'
-COLOR_PALETTE = 'husl' 
+WC_SIZE = (800, 400) 

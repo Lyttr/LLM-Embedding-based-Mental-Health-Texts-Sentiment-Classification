@@ -22,6 +22,7 @@ from config import (
 import joblib
 import os
 from openai import OpenAI
+import json
 
 class ModelTrainer:
 
@@ -40,14 +41,14 @@ class ModelTrainer:
                 max_depth=8,
                 n_jobs=1,
                 min_samples_split=10,
-                random_state=42
+                random_state=RANDOM_STATE
             ),
             'mlp': MLPClassifier(
                 hidden_layer_sizes=(128, 64),
                 activation='relu',
                 solver='adam',
                 max_iter=200,
-                random_state=42,
+                random_state=RANDOM_STATE,
                 early_stopping=True,
                 verbose=True
             )
@@ -56,26 +57,51 @@ class ModelTrainer:
     def train_and_evaluate(self, X_train, X_test, y_train, y_test, model_name):
         try:
             algo_metrics = {}
+            algo_params = {}
 
             for algo in ['lr', 'rf', 'mlp']:
                 try:
                     algo_plot_dir = os.path.join('plots', model_name, algo)
                     os.makedirs(algo_plot_dir, exist_ok=True)
+                    grid_search = GridSearchCV(
+                        estimator=self.models[algo],
+                        param_grid=MODEL_PARAMS[algo],
+                        cv=CV_FOLDS,
+                        scoring='accuracy',
+                        n_jobs=-1,
+                        verbose=1
+                    )
                     
-                    model = self.models[algo]
-                    model.fit(X_train, y_train)
-                    self.best_models[algo] = model
-                    model_path = f'models/{model_name}_{algo}.joblib'
-                    joblib.dump(model, model_path)
-                    logging.info(f"Saved model {algo}")
+                    logging.info(f"Starting GridSearchCV for {algo}")
+                    grid_search.fit(X_train, y_train)
 
+                    best_params = grid_search.best_params_
+                    best_score = grid_search.best_score_
+                    logging.info(f"Best parameters for {algo}: {best_params}")
+                    logging.info(f"Best cross-validation score: {best_score:.3f}")
+
+                    algo_params[algo] = {
+                        'best_params': best_params,
+                        'best_cv_score': float(best_score)
+                    }
+                    
+                    # Get best model
+                    best_model = grid_search.best_estimator_
+                    self.best_models[algo] = best_model
+                    
+                    # Save model
+                    model_path = f'models/{model_name}_{algo}.joblib'
+                    joblib.dump(best_model, model_path)
+                    logging.info(f"Saved best model for {algo}")
+
+                    # Evaluate on test set
                     metrics = self._evaluate_model(X_test, y_test, model_name, algo)
                     algo_metrics[algo] = metrics
 
                     if algo == 'rf':
                         self.visualizer.plot_feature_importance(
                             range(X_train.shape[1]),
-                            model.feature_importances_,
+                            best_model.feature_importances_,
                             title=f'{algo} Feature Importance',
                             filename=os.path.join(algo_plot_dir, 'feature_importance.png')
                         )
@@ -90,7 +116,10 @@ class ModelTrainer:
                 filename=os.path.join('plots', model_name, 'model_performance_comparison.png')
             )
             
-            return algo_metrics
+            return {
+                'metrics': algo_metrics,
+                'parameters': algo_params
+            }
             
         except Exception as e:
             logging.error(f"Model evaluation error: {str(e)}")
@@ -102,13 +131,11 @@ class ModelTrainer:
             model = self.best_models[algo]
             y_pred = model.predict(X_test)
             
-      
             accuracy = accuracy_score(y_test, y_pred)
             precision = precision_score(y_test, y_pred, average='weighted')
             recall = recall_score(y_test, y_pred, average='weighted')
             f1 = f1_score(y_test, y_pred, average='weighted')
             
-           
             metrics = {
                 'accuracy': accuracy,
                 'precision': precision,
