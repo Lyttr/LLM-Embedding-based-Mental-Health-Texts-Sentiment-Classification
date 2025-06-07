@@ -28,37 +28,27 @@ class ModelTrainer:
         self.visualizer = visualizer
         self.best_models = {}
         self.models = {
-            'lr': GridSearchCV(
-                LogisticRegression(max_iter=500, n_jobs=1),
-                param_grid={'C': [1.0]},
-                cv=5,
-                n_jobs=1
+            'lr': LogisticRegression(
+                max_iter=200,
+                n_jobs=1,
+                solver='liblinear',
+                C=1.0
             ),
-            'rf': GridSearchCV(
-                RandomForestClassifier(
-                    n_estimators=50,
-                    max_depth=10,
-                    n_jobs=1
-                ),
-                param_grid={
-                    'n_estimators': [50],
-                    'max_depth': [10]
-                },
-                cv=5,
-                n_jobs=1
+            'rf': RandomForestClassifier(
+                n_estimators=30,
+                max_depth=8,
+                n_jobs=1,
+                min_samples_split=10,
+                random_state=42
             ),
-            'mlp': GridSearchCV(
-                MLPClassifier(
-                    hidden_layer_sizes=(64,),
-                    max_iter=500,
-                    early_stopping=True
-                ),
-                param_grid={
-                    'hidden_layer_sizes': [(64,)],
-                    'alpha': [0.0001]
-                },
-                cv=5,
-                n_jobs=1
+            'mlp': MLPClassifier(
+                hidden_layer_sizes=(128, 64),
+                activation='relu',
+                solver='adam',
+                max_iter=200,
+                random_state=42,
+                early_stopping=True,
+                verbose=True
             )
         }
 
@@ -80,20 +70,11 @@ class ModelTrainer:
 
                     metrics = self._evaluate_model(X_test, y_test, model_name, algo)
                     algo_metrics[algo] = metrics
-                    
 
-                    self.visualizer.plot_learning_curve(
-                        model,
-                        X_train,
-                        y_train,
-                        title=f'{algo} Learning Curve',
-                        filename=os.path.join(algo_plot_dir, 'learning_curve.png')
-                    )
- 
                     if algo == 'rf':
                         self.visualizer.plot_feature_importance(
                             range(X_train.shape[1]),
-                            model.best_estimator_.feature_importances_,
+                            model.feature_importances_,
                             title=f'{algo} Feature Importance',
                             filename=os.path.join(algo_plot_dir, 'feature_importance.png')
                         )

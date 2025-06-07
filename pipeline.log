@@ -1688,3 +1688,121 @@ Checkout your internet connection or see how to run the library in offline mode 
 2025-06-06 23:49:47,360 - INFO - Personality disorder: 1077 samples
 2025-06-06 23:49:47,360 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
 2025-06-06 23:49:47,363 - INFO - Generating embeddings using all-MiniLM-L12-v2
+2025-06-07 00:12:28,012 - INFO - Saved embeddings to embeddings/embeddings_all-MiniLM-L12-v2.npy
+2025-06-07 00:12:33,582 - INFO - Saved model lr
+2025-06-07 00:12:57,241 - INFO - Saved model rf
+2025-06-07 00:13:28,484 - INFO - Saved model mlp
+2025-06-07 00:13:31,195 - ERROR - Pipeline failed: 'accuracy'
+2025-06-07 00:14:10,515 - INFO - Directory created or exists: plots
+2025-06-07 00:14:10,515 - INFO - Directory created or exists: models
+2025-06-07 00:14:10,515 - INFO - Directory created or exists: results
+2025-06-07 00:14:10,515 - INFO - Processing and evaluating model: all-MiniLM-L6-v2
+2025-06-07 00:14:10,542 - INFO - Use pytorch device_name: mps
+2025-06-07 00:14:10,542 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-06-07 00:14:22,538 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-07 00:14:22,541 - INFO - Mental health status distribution in dataset:
+2025-06-07 00:14:22,541 - INFO - Normal: 16343 samples
+2025-06-07 00:14:22,541 - INFO - Depression: 15404 samples
+2025-06-07 00:14:22,541 - INFO - Suicidal: 10652 samples
+2025-06-07 00:14:22,541 - INFO - Anxiety: 3841 samples
+2025-06-07 00:14:22,541 - INFO - Bipolar: 2777 samples
+2025-06-07 00:14:22,541 - INFO - Stress: 2587 samples
+2025-06-07 00:14:22,541 - INFO - Personality disorder: 1077 samples
+2025-06-07 00:14:22,541 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-07 00:14:22,543 - INFO - Loading existing embeddings from embeddings/embeddings_all-MiniLM-L6-v2.npy
+2025-06-07 00:14:22,608 - INFO - Generating data visualizations...
+2025-06-07 00:15:04,517 - INFO - Saved model lr
+2025-06-07 00:19:12,061 - INFO - Directory created or exists: plots
+2025-06-07 00:19:12,061 - INFO - Directory created or exists: models
+2025-06-07 00:19:12,061 - INFO - Directory created or exists: results
+2025-06-07 00:19:12,062 - INFO - Processing and evaluating model: all-MiniLM-L6-v2
+2025-06-07 00:19:12,072 - INFO - Use pytorch device_name: mps
+2025-06-07 00:19:12,072 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-06-07 00:19:14,598 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-07 00:19:14,601 - INFO - Mental health status distribution in dataset:
+2025-06-07 00:19:14,601 - INFO - Normal: 16343 samples
+2025-06-07 00:19:14,601 - INFO - Depression: 15404 samples
+2025-06-07 00:19:14,601 - INFO - Suicidal: 10652 samples
+2025-06-07 00:19:14,601 - INFO - Anxiety: 3841 samples
+2025-06-07 00:19:14,601 - INFO - Bipolar: 2777 samples
+2025-06-07 00:19:14,601 - INFO - Stress: 2587 samples
+2025-06-07 00:19:14,601 - INFO - Personality disorder: 1077 samples
+2025-06-07 00:19:14,601 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-07 00:19:14,602 - INFO - Loading existing embeddings from embeddings/embeddings_all-MiniLM-L6-v2.npy
+2025-06-07 00:19:14,709 - INFO - Generating data visualizations...
+2025-06-07 00:19:30,822 - INFO - Saved model lr
+2025-06-07 00:21:49,495 - INFO - Directory created or exists: plots
+2025-06-07 00:21:49,495 - INFO - Directory created or exists: models
+2025-06-07 00:21:49,495 - INFO - Directory created or exists: results
+2025-06-07 00:21:49,495 - INFO - Processing and evaluating model: all-MiniLM-L6-v2
+2025-06-07 00:21:49,505 - INFO - Use pytorch device_name: mps
+2025-06-07 00:21:49,505 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L6-v2
+2025-06-07 00:22:01,584 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-07 00:22:01,588 - INFO - Mental health status distribution in dataset:
+2025-06-07 00:22:01,588 - INFO - Normal: 16343 samples
+2025-06-07 00:22:01,588 - INFO - Depression: 15404 samples
+2025-06-07 00:22:01,588 - INFO - Suicidal: 10652 samples
+2025-06-07 00:22:01,588 - INFO - Anxiety: 3841 samples
+2025-06-07 00:22:01,588 - INFO - Bipolar: 2777 samples
+2025-06-07 00:22:01,588 - INFO - Stress: 2587 samples
+2025-06-07 00:22:01,588 - INFO - Personality disorder: 1077 samples
+2025-06-07 00:22:01,588 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-07 00:22:01,589 - INFO - Loading existing embeddings from embeddings/embeddings_all-MiniLM-L6-v2.npy
+2025-06-07 00:22:01,691 - INFO - Generating data visualizations...
+2025-06-07 00:22:17,641 - INFO - Saved model lr
+2025-06-07 00:22:27,833 - INFO - Saved model rf
+2025-06-07 00:22:31,481 - INFO - Saved model mlp
+2025-06-07 00:22:32,047 - INFO - Processing and evaluating model: all-mpnet-base-v2
+2025-06-07 00:22:32,049 - INFO - Use pytorch device_name: mps
+2025-06-07 00:22:32,049 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-mpnet-base-v2
+2025-06-07 00:22:34,102 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-07 00:22:34,105 - INFO - Mental health status distribution in dataset:
+2025-06-07 00:22:34,105 - INFO - Normal: 16343 samples
+2025-06-07 00:22:34,105 - INFO - Depression: 15404 samples
+2025-06-07 00:22:34,105 - INFO - Suicidal: 10652 samples
+2025-06-07 00:22:34,105 - INFO - Anxiety: 3841 samples
+2025-06-07 00:22:34,105 - INFO - Bipolar: 2777 samples
+2025-06-07 00:22:34,105 - INFO - Stress: 2587 samples
+2025-06-07 00:22:34,105 - INFO - Personality disorder: 1077 samples
+2025-06-07 00:22:34,105 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-07 00:22:34,106 - INFO - Loading existing embeddings from embeddings/embeddings_all-mpnet-base-v2.npy
+2025-06-07 00:23:01,404 - INFO - Saved model lr
+2025-06-07 00:23:15,759 - INFO - Saved model rf
+2025-06-07 00:23:20,958 - INFO - Saved model mlp
+2025-06-07 00:23:21,533 - INFO - Processing and evaluating model: all-distilroberta-v1
+2025-06-07 00:23:21,536 - INFO - Use pytorch device_name: mps
+2025-06-07 00:23:21,536 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-distilroberta-v1
+2025-06-07 00:23:23,805 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-07 00:23:23,808 - INFO - Mental health status distribution in dataset:
+2025-06-07 00:23:23,808 - INFO - Normal: 16343 samples
+2025-06-07 00:23:23,808 - INFO - Depression: 15404 samples
+2025-06-07 00:23:23,808 - INFO - Suicidal: 10652 samples
+2025-06-07 00:23:23,808 - INFO - Anxiety: 3841 samples
+2025-06-07 00:23:23,808 - INFO - Bipolar: 2777 samples
+2025-06-07 00:23:23,808 - INFO - Stress: 2587 samples
+2025-06-07 00:23:23,808 - INFO - Personality disorder: 1077 samples
+2025-06-07 00:23:23,808 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-07 00:23:23,809 - INFO - Loading existing embeddings from embeddings/embeddings_all-distilroberta-v1.npy
+2025-06-07 00:23:51,981 - INFO - Saved model lr
+2025-06-07 00:24:06,623 - INFO - Saved model rf
+2025-06-07 00:24:11,401 - INFO - Saved model mlp
+2025-06-07 00:24:11,974 - INFO - Processing and evaluating model: all-MiniLM-L12-v2
+2025-06-07 00:24:11,976 - INFO - Use pytorch device_name: mps
+2025-06-07 00:24:11,976 - INFO - Load pretrained SentenceTransformer: sentence-transformers/all-MiniLM-L12-v2
+2025-06-07 00:24:15,108 - INFO - Loaded 52681 samples from data/Combined Data.csv
+2025-06-07 00:24:15,111 - INFO - Mental health status distribution in dataset:
+2025-06-07 00:24:15,111 - INFO - Normal: 16343 samples
+2025-06-07 00:24:15,111 - INFO - Depression: 15404 samples
+2025-06-07 00:24:15,111 - INFO - Suicidal: 10652 samples
+2025-06-07 00:24:15,111 - INFO - Anxiety: 3841 samples
+2025-06-07 00:24:15,111 - INFO - Bipolar: 2777 samples
+2025-06-07 00:24:15,111 - INFO - Stress: 2587 samples
+2025-06-07 00:24:15,111 - INFO - Personality disorder: 1077 samples
+2025-06-07 00:24:15,111 - INFO - Label mapping: {'Anxiety': 0, 'Bipolar': 1, 'Depression': 2, 'Normal': 3, 'Personality disorder': 4, 'Stress': 5, 'Suicidal': 6}
+2025-06-07 00:24:15,113 - INFO - Loading existing embeddings from embeddings/embeddings_all-MiniLM-L12-v2.npy
+2025-06-07 00:24:43,838 - INFO - Saved model lr
+2025-06-07 00:24:54,182 - INFO - Saved model rf
+2025-06-07 00:24:57,221 - INFO - Saved model mlp
+2025-06-07 00:24:57,802 - INFO - Saved metrics to results/all_models_metrics.json
+2025-06-07 00:24:57,802 - INFO - Saved metrics to results/all_models_metrics.json
+2025-06-07 00:24:58,361 - INFO - Saved performance comparison plot

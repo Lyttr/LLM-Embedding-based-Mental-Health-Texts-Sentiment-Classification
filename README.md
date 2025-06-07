@@ -1,6 +1,6 @@
 # Mental Health Text Sentiment Classification
 
-This project implements sentiment classification for mental health texts using LLM embeddings and various machine learning models.
+A machine learning project for sentiment classification of mental health texts using various embedding models and classifiers.
 
 ## Project Structure
 
@@ -12,17 +12,18 @@ This project implements sentiment classification for mental health texts using L
 ├── data_processor.py      # Data loading and preprocessing
 ├── model_trainer.py       # Model training and evaluation
 ├── visualizer.py         # Visualization utilities
+├── data_visualizer.py    # Data analysis visualization
 ├── main.py              # Main execution script
 ├── data/                # Data directory
 │   └── Combined Data.csv # Dataset file
-├── models/              # Saved models and embeddings
+├── models/              # Saved models
 ├── plots/               # Generated visualizations
-└── results/             # Evaluation results and metrics
+└── results/             # Evaluation results
 ```
 
 ## Setup
 
-1. Create and activate a virtual environment (recommended):
+1. Create and activate virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -37,9 +38,35 @@ pip install -r requirements.txt
 
 ## Data Format
 
-The input dataset should be a CSV file with the following columns:
-- `statement`: Text content to be classified
+The input dataset should be a CSV file with:
+- `statement`: Text content
 - `status`: Sentiment label (positive/negative/neutral)
+
+## Features
+
+- Multiple embedding models:
+  - all-MiniLM-L6-v2
+  - all-mpnet-base-v2
+  - all-distilroberta-v1
+  - all-MiniLM-L12-v2
+
+- Classifiers:
+  - Logistic Regression
+  - Random Forest
+  - Multi-layer Perceptron
+
+- Evaluation metrics:
+  - Accuracy
+  - Precision
+  - Recall
+  - F1 Score
+
+- Visualizations:
+  - Text length distribution
+  - Class distribution
+  - Confusion matrices
+  - Feature importance
+  - Model performance comparison
 
 ## Usage
 
@@ -48,47 +75,8 @@ Run the main script:
 python main.py
 ```
 
-## Features
-
-- Data preprocessing and embedding generation using SentenceTransformer
-- Multiple embedding models:
-  - all-MiniLM-L6-v2
-  - all-mpnet-base-v2
-  - all-distilroberta-v1
-  - all-MiniLM-L12-v2
-- Multiple classifier implementations:
-  - Logistic Regression
-  - Random Forest
-  - Multi-layer Perceptron
-  - Support Vector Machine
-- Comprehensive model evaluation metrics:
-  - Accuracy
-  - Precision
-  - Recall
-  - F1 Score
-  - ROC AUC
-- Data visualization:
-  - Text length distribution
-  - Class distribution
-  - Confusion matrices
-  - ROC curves
-  - Learning curves
-  - Word clouds
-
-## Configuration
-
-Model parameters and other settings can be adjusted in `config.py`:
-
-- `EMB_MODELS`: Configuration for embedding models
-- `MODEL_PARAMS`: Parameters for each classifier
-- `TEST_SIZE`: Test set proportion
-- `CV_FOLDS`: Number of cross-validation folds
-- `RANDOM_STATE`: Random seed for reproducibility
-
 ## Output
 
-The pipeline generates:
-- Trained models in `models/`
-- Performance visualizations in `plots/`
-- Evaluation metrics in `results/`
-- Detailed logs in `pipeline.log`
+- Trained models saved in `models/`
+- Visualizations saved in `plots/`
+- Evaluation metrics saved in `results/`
