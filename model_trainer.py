@@ -67,35 +67,55 @@ class ModelTrainer:
         
         return train_sizes_abs, train_scores, test_scores
 
-    def eval(self, model, X_test, y_test, label_map):
-        """Evaluate model performance."""
-        # Get predictions
-        y_pred = model.predict(X_test)
-        
-        # Calculate basic metrics
-        metrics = {
-            'accuracy': accuracy_score(y_test, y_pred),
-            'precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
-            'recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
-            'f1': f1_score(y_test, y_pred, average='weighted', zero_division=0),
-            'y_pred': y_pred,
-            'classification_report': classification_report(
-                y_test, 
-                y_pred, 
-                target_names=label_map.keys(),
-                output_dict=True
+    def eval(self, X_test, y_test, model_name, algo):
+        """评估模型性能"""
+        try:
+            # 获取最佳模型
+            best_model = self.models[algo].best_estimator_
+            
+            # 预测
+            y_pred = best_model.predict(X_test)
+            y_pred_proba = best_model.predict_proba(X_test)
+            
+            # 计算评估指标
+            accuracy = accuracy_score(y_test, y_pred)
+            precision = precision_score(y_test, y_pred, average='weighted')
+            recall = recall_score(y_test, y_pred, average='weighted')
+            f1 = f1_score(y_test, y_pred, average='weighted')
+            
+            # 计算混淆矩阵
+            cm = confusion_matrix(y_test, y_pred)
+            
+            # 保存评估结果
+            metrics = {
+                'accuracy': accuracy,
+                'precision': precision,
+                'recall': recall,
+                'f1': f1,
+                'confusion_matrix': cm
+            }
+            
+            # 可视化评估结果
+            self.visualizer.plot_confusion_matrix(
+                cm,
+                title=f'{algo} Confusion Matrix',
+                filename=f'plots/{model_name}/{algo}/confusion_matrix.png'
             )
-        }
-        
-        # Log detailed metrics
-        logging.info("\nClassification Report:")
-        logging.info(classification_report(y_test, y_pred, target_names=label_map.keys()))
-        logging.info(f"Accuracy: {metrics['accuracy']:.4f}")
-        logging.info(f"Weighted Precision: {metrics['precision']:.4f}")
-        logging.info(f"Weighted Recall: {metrics['recall']:.4f}")
-        logging.info(f"Weighted F1 Score: {metrics['f1']:.4f}")
-        
-        return metrics
+            
+            # 绘制学习曲线
+            self.visualizer.plot_learning_curve(
+                best_model,
+                X_test,
+                y_test,
+                title=f'{algo} Learning Curve',
+                filename=f'plots/{model_name}/{algo}/learning_curve.png'
+            )
+            
+            return metrics
+            
+        except Exception as e:
+            logging.error(f"Model evaluation error: {str(e)}")
+            raise
 
 class LLMClassifier:
     def __init__(self, api_key):
