@@ -18,7 +18,13 @@ class Visualizer:
     
     def _save_plot(self, filename):
         """Save the current plot to file."""
-        plt.savefig(os.path.join(self.save_dir, filename), bbox_inches='tight', dpi=300)
+        if os.path.isabs(filename) or filename.startswith(('plots/', './plots/')):
+            save_path = filename
+        else:
+            save_path = os.path.join(self.save_dir, filename)
+        
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
         plt.close()
     
     def plot_cm(self, y_true, y_pred, labels, title='Confusion Matrix', filename='confusion_matrix.png'):

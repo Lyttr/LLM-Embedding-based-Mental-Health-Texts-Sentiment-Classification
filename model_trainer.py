@@ -53,35 +53,61 @@ class ModelTrainer:
         }
 
     def train_and_evaluate(self, X_train, X_test, y_train, y_test, model_name):
-
         try:
             algo_metrics = {}
 
             for algo in ['lr', 'rf', 'mlp']:
                 try:
-
-                    algo_plot_dir = f'plots/{model_name}/{algo}'
+               
+                    algo_plot_dir = os.path.join('plots', model_name, algo)
                     os.makedirs(algo_plot_dir, exist_ok=True)
-
+                    
                     model = self.models[algo]
                     model.fit(X_train, y_train)
                     self.best_models[algo] = model
                     model_path = f'models/{model_name}_{algo}.joblib'
                     joblib.dump(model, model_path)
                     logging.info(f"Saved model {algo}")
+                    
                     metrics = self._evaluate_model(
                         X_test, y_test, model_name, algo
                     )
                     algo_metrics[algo] = metrics
+                    
+                    self.visualizer.plot_learning_curve(
+                        model,
+                        X_train,
+                        y_train,
+                        title=f'{algo} Learning Curve',
+                        filename=os.path.join(algo_plot_dir, 'learning_curve.png')
+                    )
+                    
+     
+                    y_pred = model.predict(X_test)
+                    self.visualizer.plot_cm(
+                        y_test,
+                        y_pred,
+                        labels=['negative', 'positive'],
+                        title=f'{algo} Confusion Matrix',
+                        filename=os.path.join(algo_plot_dir, 'confusion_matrix.png')
+                    )
+
+                    if algo == 'rf':
+                        self.visualizer.plot_feature_importance(
+                            range(X_train.shape[1]),
+                            model.feature_importances_,
+                            title=f'{algo} Feature Importance',
+                            filename=os.path.join(algo_plot_dir, 'feature_importance.png')
+                        )
                     
                 except Exception as e:
                     logging.error(f"Error in {algo} for {model_name}: {str(e)}")
                     continue
             
             return algo_metrics
-                    
+            
         except Exception as e:
-            logging.error(f"Model training and evaluation error: {str(e)}")
+            logging.error(f"Model evaluation error: {str(e)}")
             raise
 
     def _evaluate_model(self, X_test, y_test, model_name, algo):
