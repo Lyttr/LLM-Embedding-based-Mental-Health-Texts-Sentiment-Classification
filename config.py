@@ -44,10 +44,12 @@ MODEL_PARAMS = {
         'learning_rate_init': [0.001]
     },
     'svm': {
-        'C': [0.1, 1.0, 10.0],
-        'kernel': ['rbf'],
+        'C': [1.0],
+        'kernel': ['linear'],
         'probability': [True],
-        'max_iter': [1000]
+        'max_iter': [1000],
+        'cache_size': [1000],
+        'tol': [0.1]
     }
 }
 
