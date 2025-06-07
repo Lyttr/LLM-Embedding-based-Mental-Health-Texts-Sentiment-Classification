@@ -3,13 +3,15 @@ import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report
 from wordcloud import WordCloud
 import numpy as np
-from config import FIG_SIZE, WC_SIZE, COLOR_PALETTE
+from config import FIG_SIZE, WC_SIZE, COLOR_PALETTE, CV_FOLDS
 import os
+from sklearn.model_selection import learning_curve
+import logging
 
 class Visualizer:
     def __init__(self, save_dir='plots'):
         """Initialize visualizer with style settings."""
-        plt.style.use('seaborn-v0_8')  # Use a valid style name
+        plt.style.use('seaborn-v0_8') 
         self.colors = sns.color_palette(COLOR_PALETTE)
         self.save_dir = save_dir
         os.makedirs(save_dir, exist_ok=True)
@@ -31,36 +33,31 @@ class Visualizer:
         plt.tight_layout()
         self._save_plot(filename)
     
-    def plot_metrics(self, metrics_dict, title='Model Performance Comparison', filename='metrics_comparison.png'):
-        """Plot performance metrics comparison."""
-        # Extract basic metrics
-        models = list(metrics_dict.keys())
-        metric_names = ['accuracy', 'precision', 'recall', 'f1']
-        
-        # Prepare data for plotting
-        x = np.arange(len(models))
-        width = 0.8 / len(metric_names)
-        
-        plt.figure(figsize=(12, 6))
-        for i, metric in enumerate(metric_names):
-            values = [metrics_dict[model][metric] for model in models]
-            bars = plt.bar(x + i*width, values, width, label=metric.capitalize())
-            
-            # Add value labels on top of each bar
+    def plot_metrics(self, metrics, title='Model Performance Comparison', filename='model_performance_comparison.png'):
+  
+        try:
+            metrics_names = ['accuracy', 'precision', 'recall', 'f1']
+            values = [metrics[name] for name in metrics_names]
+            plt.figure(figsize=(10, 6))
+            bars = plt.bar(metrics_names, values)
             for bar in bars:
                 height = bar.get_height()
                 plt.text(bar.get_x() + bar.get_width()/2., height,
                         f'{height:.3f}',
                         ha='center', va='bottom')
-        
-        plt.xlabel('Models')
-        plt.ylabel('Score')
-        plt.title(title)
-        plt.xticks(x + width*len(metric_names)/2, models, rotation=45, ha='right')
-        plt.legend()
-        plt.grid(True, alpha=0.3)
-        plt.tight_layout()
-        self._save_plot(filename)
+            
+            plt.title(title)
+            plt.ylabel('Score')
+            plt.ylim(0, 1.1) 
+            plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+ 
+            plt.savefig(filename)
+            plt.close()
+            
+        except Exception as e:
+            logging.error(f"Metric plot error: {str(e)}")
+            raise
     
     def plot_len_dist(self, df, len_col='len', filename='length_distribution.png'):
         """Plot text length distribution."""
@@ -103,27 +100,44 @@ class Visualizer:
         plt.title(title)
         self._save_plot(filename)
     
-    def plot_learning_curve(self, train_sizes, train_scores, test_scores, title='Learning Curve', filename='learning_curve.png'):
-        """Plot learning curve."""
-        train_mean = np.mean(train_scores, axis=1)
-        train_std = np.std(train_scores, axis=1)
-        test_mean = np.mean(test_scores, axis=1)
-        test_std = np.std(test_scores, axis=1)
-        
-        plt.figure(figsize=FIG_SIZE)
-        plt.plot(train_sizes, train_mean, label='Training score')
-        plt.plot(train_sizes, test_mean, label='Cross-validation score')
-        plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, alpha=0.1)
-        plt.fill_between(train_sizes, test_mean - test_std, test_mean + test_std, alpha=0.1)
-        plt.title(title)
-        plt.xlabel('Training Examples')
-        plt.ylabel('Score')
-        plt.legend(loc='best')
-        plt.grid(True)
-        self._save_plot(filename)
+    def plot_learning_curve(self, model, X, y, title='Learning Curve', filename='learning_curve.png'):
+        try:
+            train_sizes = np.linspace(0.1, 1.0, 10)
+            train_sizes_abs, train_scores, test_scores = learning_curve(
+                model,
+                X,
+                y,
+                train_sizes=train_sizes,
+                cv=CV_FOLDS,
+                n_jobs=-1,
+                scoring='accuracy'
+            )
+            train_mean = np.mean(train_scores, axis=1)
+            train_std = np.std(train_scores, axis=1)
+            test_mean = np.mean(test_scores, axis=1)
+            test_std = np.std(test_scores, axis=1)
+            plt.figure(figsize=(10, 6))
+            plt.plot(train_sizes_abs, train_mean, label='Training score')
+            plt.fill_between(train_sizes_abs, train_mean - train_std, train_mean + train_std, alpha=0.1)
+            plt.plot(train_sizes_abs, test_mean, label='Cross-validation score')
+            plt.fill_between(train_sizes_abs, test_mean - test_std, test_mean + test_std, alpha=0.1)
+            
+            plt.title(title)
+            plt.xlabel('Training Examples')
+            plt.ylabel('Score')
+            plt.legend(loc='best')
+            plt.grid(True)
+            plt.tight_layout()
+
+            plt.savefig(filename)
+            plt.close()
+            
+        except Exception as e:
+            logging.error(f"Learning curve plot error: {str(e)}")
+            raise
     
     def plot_feature_importance(self, feature_names, importance, title='Feature Importance', filename='feature_importance.png'):
-        """Plot feature importance."""
+
         plt.figure(figsize=(10, 6))
         indices = np.argsort(importance)
         plt.barh(range(len(indices)), importance[indices])
@@ -131,4 +145,15 @@ class Visualizer:
         plt.title(title)
         plt.xlabel('Importance')
         plt.tight_layout()
-        self._save_plot(filename) 
+        self._save_plot(filename)
+    
+    def plot_confusion_matrix(self, cm, title='Confusion Matrix', filename='confusion_matrix.png'):
+
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        plt.title(title)
+        plt.ylabel('True Label')
+        plt.xlabel('Predicted Label')
+        plt.tight_layout()
+        plt.savefig(filename)
+        plt.close() 

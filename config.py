@@ -2,6 +2,7 @@ from pathlib import Path
 
 # Data paths
 DATA_PATH = Path('data/Combined Data.csv')
+EMBEDDINGS_DIR = 'embeddings'
 
 # Model params
 EMB_MODELS = {
@@ -80,8 +81,7 @@ Sentiment: neutral
 Now classify this text: {text}"""
 }
 
-# === Visualization Configurations ===
 FIG_SIZE = (6, 5)
 WC_SIZE = (800, 400)
-PLOT_STYLE = 'seaborn'
+PLOT_STYLE = 'seaborn-v0_8'
 COLOR_PALETTE = 'husl' 

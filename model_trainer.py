@@ -19,96 +19,107 @@ from config import (
     LLM_MAX_TOKENS,
     LLM_PROMPTS
 )
+import joblib
+import os
 
 class ModelTrainer:
-    def __init__(self):
+
+    def __init__(self, visualizer):
+        self.visualizer = visualizer
         self.best_models = {}
+
         self.models = {
-            'lr': LogisticRegression(random_state=RANDOM_STATE),
-            'rf': RandomForestClassifier(random_state=RANDOM_STATE),
-            'mlp': MLPClassifier(random_state=RANDOM_STATE)
+            'lr': LogisticRegression(
+                random_state=RANDOM_STATE,
+                max_iter=1000,
+                C=1.0,
+                n_jobs=-1
+            ),
+            'rf': RandomForestClassifier(
+                random_state=RANDOM_STATE,
+                n_estimators=100,
+                max_depth=None,
+                min_samples_split=2,
+                n_jobs=-1
+            ),
+            'mlp': MLPClassifier(
+                random_state=RANDOM_STATE,
+                hidden_layer_sizes=(100,),
+                max_iter=1000,
+                early_stopping=True,
+                learning_rate_init=0.001,
+                solver='adam'
+            )
         }
 
-    def train(self, algo, X_train, y_train):
-        """Train model with GridSearchCV."""
-        if algo not in self.models:
-            raise ValueError(f"Unknown algorithm: {algo}")
+    def train_and_evaluate(self, X_train, X_test, y_train, y_test, model_name):
 
-        # Get parameters for the algorithm
-        param_grid = MODEL_PARAMS[algo]
-        
-        # Create GridSearchCV object
-        grid_search = GridSearchCV(
-            self.models[algo],
-            param_grid,
-            cv=CV_FOLDS,
-            scoring='accuracy',
-            n_jobs=-1,
-            verbose=1
-        )
-
-        # Fit the model
-        grid_search.fit(X_train, y_train)
-        
-        # Store the best model
-        self.best_models[algo] = grid_search.best_estimator_
-        
-        # Get learning curve data
-        train_sizes = np.linspace(0.1, 1.0, 10)
-        train_sizes_abs, train_scores, test_scores = learning_curve(
-            self.best_models[algo],
-            X_train,
-            y_train,
-            train_sizes=train_sizes,
-            cv=CV_FOLDS,
-            n_jobs=-1,
-            scoring='accuracy'
-        )
-        
-        return train_sizes_abs, train_scores, test_scores
-
-    def eval(self, X_test, y_test, model_name, algo):
-        """评估模型性能"""
         try:
-            # 获取最佳模型
-            best_model = self.models[algo].best_estimator_
+            algo_metrics = {}
+
+            for algo in ['lr', 'rf', 'mlp']:
+                try:
+
+                    algo_plot_dir = f'plots/{model_name}/{algo}'
+                    os.makedirs(algo_plot_dir, exist_ok=True)
+
+                    model = self.models[algo]
+                    model.fit(X_train, y_train)
+                    self.best_models[algo] = model
+                    model_path = f'models/{model_name}_{algo}.joblib'
+                    joblib.dump(model, model_path)
+                    logging.info(f"Saved model {algo}")
+                    metrics = self._evaluate_model(
+                        X_test, y_test, model_name, algo
+                    )
+                    algo_metrics[algo] = metrics
+                    
+                except Exception as e:
+                    logging.error(f"Error in {algo} for {model_name}: {str(e)}")
+                    continue
             
-            # 预测
+            return algo_metrics
+                    
+        except Exception as e:
+            logging.error(f"Model training and evaluation error: {str(e)}")
+            raise
+
+    def _evaluate_model(self, X_test, y_test, model_name, algo):
+
+        try:
+
+            if algo not in self.best_models:
+                raise ValueError(f"No trained model found for {algo}")
+                
+            best_model = self.best_models[algo]
+            
             y_pred = best_model.predict(X_test)
-            y_pred_proba = best_model.predict_proba(X_test)
-            
-            # 计算评估指标
-            accuracy = accuracy_score(y_test, y_pred)
-            precision = precision_score(y_test, y_pred, average='weighted')
-            recall = recall_score(y_test, y_pred, average='weighted')
-            f1 = f1_score(y_test, y_pred, average='weighted')
-            
-            # 计算混淆矩阵
-            cm = confusion_matrix(y_test, y_pred)
-            
-            # 保存评估结果
+            y_test = np.array(y_test)
+            y_pred = np.array(y_pred)
             metrics = {
-                'accuracy': accuracy,
-                'precision': precision,
-                'recall': recall,
-                'f1': f1,
-                'confusion_matrix': cm
+                'accuracy': float(accuracy_score(y_test, y_pred)),
+                'precision': float(precision_score(y_test, y_pred, average='weighted')),
+                'recall': float(recall_score(y_test, y_pred, average='weighted')),
+                'f1': float(f1_score(y_test, y_pred, average='weighted'))
             }
-            
-            # 可视化评估结果
+            cm = confusion_matrix(y_test, y_pred)
             self.visualizer.plot_confusion_matrix(
                 cm,
                 title=f'{algo} Confusion Matrix',
                 filename=f'plots/{model_name}/{algo}/confusion_matrix.png'
             )
-            
-            # 绘制学习曲线
             self.visualizer.plot_learning_curve(
                 best_model,
                 X_test,
                 y_test,
                 title=f'{algo} Learning Curve',
                 filename=f'plots/{model_name}/{algo}/learning_curve.png'
+            )
+            
+            self.visualizer.plot_metrics(
+                metrics,
+                title=f'{model_name} - {algo} Performance',
+                filename=f'plots/{model_name}/{algo}/model_performance_comparison.png'
             )
             
             return metrics
@@ -144,11 +155,9 @@ class LLMClassifier:
                     max_tokens=self.max_tokens
                 )
                 pred = response.choices[0].message.content.strip().lower()
-                # Map prediction to label
                 if pred in label_map:
                     predictions.append(pred)
                 else:
-                    # Default to neutral if prediction is unclear
                     predictions.append('neutral')
             except Exception as e:
                 logging.error(f"OpenAI API error: {e}")
