@@ -6,7 +6,6 @@ from pathlib import Path
 from model_trainer import LLMClassifier
 from visualizer import Visualizer
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-from sklearn.model_selection import train_test_split
 
 # === Logging Setup ===
 logging.basicConfig(
@@ -18,36 +17,46 @@ logging.basicConfig(
     ]
 )
 
+def check_api_key():
+  
+    if 'OPENAI_API_KEY' not in os.environ:
+        logging.error("""
+OpenAI API key not found
+
+""")
+        return False
+    return True
+
 def setup_directories():
-    """Ensure output directories exist."""
+
     for name in ['plots/llm', 'results']:
         Path(name).mkdir(exist_ok=True)
         logging.info(f"Directory created or exists: {name}")
 
 def save_metrics_to_json(metrics_dict, filename):
-    """Save metrics to JSON file."""
+  
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(metrics_dict, f, indent=4, ensure_ascii=False)
     logging.info(f"Saved metrics to {filename}")
 
-def load_and_split_data(data_path='data/Combined Data.csv', test_size=0.2, random_state=42):
-    """Load and split data for LLM evaluation."""
+def load_data(data_path='data/Combined Data.csv', sample_size=100, random_state=42):
+
     df = pd.read_csv(data_path)
     df = df.dropna(subset=['statement', 'status'])
     
-    # Create label map
+    if len(df) > sample_size:
+        df = df.sample(n=sample_size, random_state=random_state)
+        logging.info(f"Sampled {sample_size} records from dataset")
+    
     unique_labels = df['status'].unique()
     label_map = {label: i for i, label in enumerate(unique_labels)}
     
-    # Split data
-    train_df, test_df = train_test_split(df, test_size=test_size, random_state=random_state, stratify=df['status'])
-    
-    return train_df, test_df, label_map
+    logging.info(f"Test set size: {len(df)}")
+    return df, label_map
 
 def evaluate_llm(viz, test_df, label_map):
-    """Evaluate zero/few-shot LLM classifier."""
-    if 'OPENAI_API_KEY' not in os.environ:
-        logging.warning("LLM evaluation skipped: OPENAI_API_KEY not found.")
+  
+    if not check_api_key():
         return {}
 
     results = {}
@@ -85,13 +94,9 @@ def main():
         setup_directories()
         viz = Visualizer()
         
-        # Load and split data
-        train_df, test_df, label_map = load_and_split_data()
-        
-        # Evaluate LLM
+        test_df, label_map = load_data()
         llm_results = evaluate_llm(viz, test_df, label_map)
         
-        # Save results
         results_path = 'results/llm_metrics.json'
         save_metrics_to_json(llm_results, results_path)
         logging.info(f"Saved LLM metrics to {results_path}")

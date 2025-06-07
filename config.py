@@ -56,29 +56,61 @@ LLM_MODEL = "gpt-3.5-turbo"
 LLM_TEMP = 0.3
 LLM_MAX_TOKENS = 10
 
-# LLM prompt templates for different classification strategies
+
 LLM_PROMPTS = {
-    # Basic prompt for simple classification
-    'basic': "Classify the sentiment of this text as positive, negative, or neutral: {text}",
+ 
+    'basic': """Analyze this text and classify it into one of these mental health categories:
+- Anxiety
+- Bipolar
+- Depression
+- Normal
+- Personality disorder
+- Stress
+- Suicidal
+
+Text: {text}
+Category:""",
     
-    # Detailed prompt for more nuanced analysis
-    'detailed': """Analyze the sentiment of this text in detail. 
-Consider the emotional tone, context, and implications. 
-Classify as positive, negative, or neutral: {text}""",
+  
+    'detailed': """Analyze this text in detail for mental health classification. Consider:
+- Emotional state and intensity
+- Behavioral patterns
+- Thought processes
+- Risk factors
+- Coping mechanisms
+
+Classify into one of these categories:
+- Anxiety
+- Bipolar
+- Depression
+- Normal
+- Personality disorder
+- Stress
+- Suicidal
+
+Text: {text}
+Category:""",
     
-    # Few-shot prompt with examples
-    'few_shot': """Here are some examples of sentiment classification:
+    
+    'few_shot': """Here are some examples of mental health text classification:
 
-Text: "I feel happy and content today."
-Sentiment: positive
+Text: "I can't stop worrying about everything. My heart races and I feel like I can't breathe."
+Category: Anxiety
 
-Text: "This is terrible and I hate it."
-Sentiment: negative
+Text: "I feel so low and empty. Nothing brings me joy anymore, and I can't get out of bed."
+Category: Depression
 
-Text: "The weather is cloudy."
-Sentiment: neutral
+Text: "I'm having a great day! Everything is wonderful and I feel like I can accomplish anything!"
+Category: Normal
 
-Now classify this text: {text}"""
+Text: "I'm having extreme mood swings. One moment I'm full of energy and ideas, the next I'm completely exhausted."
+Category: Bipolar
+
+Text: "I can't take it anymore. Life is too painful and I don't want to continue."
+Category: Suicidal
+
+Now classify this text: {text}
+Category:"""
 }
 
 FIG_SIZE = (6, 5)

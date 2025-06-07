@@ -21,6 +21,7 @@ from config import (
 )
 import joblib
 import os
+from openai import OpenAI
 
 class ModelTrainer:
 
@@ -134,37 +135,40 @@ class ModelTrainer:
 
 class LLMClassifier:
     def __init__(self, api_key):
-        """Initialize OpenAI API."""
-        openai.api_key = api_key
-        self.model = LLM_MODEL
-        self.temperature = LLM_TEMP
-        self.max_tokens = LLM_MAX_TOKENS
-        self.prompts = LLM_PROMPTS
-
+        self.client = OpenAI(api_key=api_key)
+        self.valid_labels = ['Anxiety', 'Bipolar', 'Depression', 'Normal', 'Personality disorder', 'Stress', 'Suicidal']
+        
     def predict(self, texts, label_map, prompt_type='basic'):
-        """Get predictions from GPT-3.5."""
-        if prompt_type not in self.prompts:
-            raise ValueError(f"Unknown prompt type: {prompt_type}")
-
         predictions = []
+        
         for text in texts:
             try:
-                response = openai.ChatCompletion.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": "You are a sentiment analysis expert."},
-                        {"role": "user", "content": self.prompts[prompt_type].format(text=text)}
-                    ],
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens
+            
+                prompt_template = LLM_PROMPTS.get(prompt_type, LLM_PROMPTS['basic'])
+                prompt = prompt_template.format(text=text)
+                
+                messages = [
+                    {"role": "system", "content": "You are a mental health text classifier. Your task is to classify the given text into one of the following categories: Anxiety, Bipolar, Depression, Normal, Personality disorder, Stress, or Suicidal. Respond with ONLY the category name, nothing else."},
+                    {"role": "user", "content": prompt}
+                ]
+                
+                response = self.client.chat.completions.create(
+                    model=LLM_MODEL,
+                    messages=messages,
+                    temperature=LLM_TEMP,
+                    max_tokens=LLM_MAX_TOKENS
                 )
-                pred = response.choices[0].message.content.strip().lower()
-                if pred in label_map:
+                
+                pred = response.choices[0].message.content.strip()
+                
+                if pred in self.valid_labels:
                     predictions.append(pred)
                 else:
-                    predictions.append('neutral')
+                    logging.warning(f"Invalid prediction: {pred}, using default label")
+                    predictions.append('Normal')  
+                    
             except Exception as e:
                 logging.error(f"OpenAI API error: {e}")
-                predictions.append('neutral')
+                predictions.append('Normal')  
 
         return predictions 
