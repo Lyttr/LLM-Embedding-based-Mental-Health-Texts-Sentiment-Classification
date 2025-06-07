@@ -36,8 +36,7 @@ def save_metrics_to_json(metrics_dict, filename):
             'accuracy': float(metrics['accuracy']),
             'precision': float(metrics['precision']),
             'recall': float(metrics['recall']),
-            'f1': float(metrics['f1']),
-            'roc_auc': {k: float(v) for k, v in metrics['roc_auc'].items()}
+            'f1': float(metrics['f1'])
         }
     
     # Save to JSON file
