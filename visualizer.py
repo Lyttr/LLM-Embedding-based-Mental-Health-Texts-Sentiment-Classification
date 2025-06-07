@@ -44,7 +44,14 @@ class Visualizer:
         plt.figure(figsize=(12, 6))
         for i, metric in enumerate(metric_names):
             values = [metrics_dict[model][metric] for model in models]
-            plt.bar(x + i*width, values, width, label=metric.capitalize())
+            bars = plt.bar(x + i*width, values, width, label=metric.capitalize())
+            
+            # Add value labels on top of each bar
+            for bar in bars:
+                height = bar.get_height()
+                plt.text(bar.get_x() + bar.get_width()/2., height,
+                        f'{height:.3f}',
+                        ha='center', va='bottom')
         
         plt.xlabel('Models')
         plt.ylabel('Score')
@@ -124,17 +131,4 @@ class Visualizer:
         plt.title(title)
         plt.xlabel('Importance')
         plt.tight_layout()
-        self._save_plot(filename)
-    
-    def plot_roc_curve(self, fpr, tpr, roc_auc, title='ROC Curve', filename='roc_curve.png'):
-        """Plot ROC curve."""
-        plt.figure(figsize=FIG_SIZE)
-        plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
-        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title(title)
-        plt.legend(loc="lower right")
         self._save_plot(filename) 
