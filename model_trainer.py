@@ -23,6 +23,7 @@ import joblib
 import os
 from openai import OpenAI
 import json
+from data_processor import DataProcessor
 
 class ModelTrainer:
 
@@ -85,11 +86,11 @@ class ModelTrainer:
                         'best_cv_score': float(best_score)
                     }
                     
-                    # Get best model
+                
                     best_model = grid_search.best_estimator_
                     self.best_models[algo] = best_model
                     
-                    # Save model
+               
                     model_path = f'models/{model_name}_{algo}.joblib'
                     joblib.dump(best_model, model_path)
                     logging.info(f"Saved best model for {algo}")
@@ -146,12 +147,16 @@ class ModelTrainer:
             algo_plot_dir = os.path.join('plots', model_name, algo)
             os.makedirs(algo_plot_dir, exist_ok=True)
             
-            self.visualizer.plot_cm(
-                y_test,
-                y_pred,
-                labels=['negative', 'positive'],
+            # Get original class labels from the processor
+            processor = DataProcessor(model_name)
+            df = processor.load_data()
+            class_labels = sorted(df['status'].unique())
+            
+            self.visualizer.plot_confusion_matrix(
+                confusion_matrix(y_test, y_pred),
                 title=f'{algo} Confusion Matrix',
-                filename=os.path.join(algo_plot_dir, 'confusion_matrix.png')
+                filename=os.path.join(algo_plot_dir, 'confusion_matrix.png'),
+                labels=class_labels
             )
             
             return metrics

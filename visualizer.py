@@ -169,13 +169,13 @@ class Visualizer:
         plt.tight_layout()
         self._save_plot(filename)
     
-    def plot_confusion_matrix(self, cm, title='Confusion Matrix', filename='confusion_matrix.png'):
-
+    def plot_confusion_matrix(self, cm, title='Confusion Matrix', filename='confusion_matrix.png', labels=None):
         plt.figure(figsize=(10, 8))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                   xticklabels=labels if labels is not None else 'auto',
+                   yticklabels=labels if labels is not None else 'auto')
         plt.title(title)
         plt.ylabel('True Label')
         plt.xlabel('Predicted Label')
         plt.tight_layout()
-        plt.savefig(filename)
-        plt.close() 
+        self._save_plot(filename) 
